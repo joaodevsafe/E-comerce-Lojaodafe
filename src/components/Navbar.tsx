@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Heart, User, Search, Menu, X } from "lucide-react";
+import { ShoppingBag, Heart, User, Search, Menu, X, Settings } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,6 +63,11 @@ const Navbar = () => {
             <Button variant="ghost" size="icon" asChild>
               <Link to="/conta">
                 <User className="h-5 w-5" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="icon" asChild>
+              <Link to="/admin">
+                <Settings className="h-5 w-5" />
               </Link>
             </Button>
           </div>
@@ -152,6 +157,13 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               Minha Conta
+            </Link>
+            <Link 
+              to="/admin" 
+              className="block py-2 text-gray-700"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Administração
             </Link>
           </div>
         </div>
