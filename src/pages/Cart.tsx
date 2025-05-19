@@ -1,48 +1,79 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Trash2, CreditCard, ArrowRight } from "lucide-react";
+import { ShoppingBag, Trash2, CreditCard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { cartService, CartItem } from "@/services/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Cart = () => {
   const { toast } = useToast();
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Camisa Slim Fit",
-      price: 129.9,
-      size: "M",
-      color: "Azul",
-      quantity: 1,
-    },
-    {
-      id: 2,
-      name: "Jeans Premium",
-      price: 259.9,
-      size: "42",
-      color: "Preto",
-      quantity: 1,
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch cart items using React Query
+  const { data: cartItems = [] } = useQuery({
+    queryKey: ['cart'],
+    queryFn: cartService.getItems,
+    onSettled: () => setIsLoading(false),
+    onError: (error) => {
+      console.error('Error fetching cart:', error);
+      toast({
+        title: "Erro ao carregar o carrinho",
+        description: "Não foi possível carregar os itens do seu carrinho.",
+        variant: "destructive"
+      });
     }
-  ]);
+  });
+
+  // Handle removing items from cart
+  const removeItemMutation = useMutation({
+    mutationFn: (id: number) => cartService.removeItem(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast({
+        title: "Produto removido",
+        description: "O item foi removido do carrinho com sucesso."
+      });
+    },
+    onError: (error) => {
+      console.error('Error removing item:', error);
+      toast({
+        title: "Erro ao remover produto",
+        description: "Não foi possível remover o item do carrinho.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle quantity changes
+  const updateQuantityMutation = useMutation({
+    mutationFn: ({ id, quantity }: { id: number; quantity: number }) => 
+      cartService.updateQuantity(id, quantity),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+    onError: (error) => {
+      console.error('Error updating quantity:', error);
+      toast({
+        title: "Erro ao atualizar quantidade",
+        description: "Não foi possível atualizar a quantidade do item.",
+        variant: "destructive"
+      });
+    }
+  });
 
   const handleRemoveItem = (id: number) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-    toast({
-      title: "Produto removido",
-      description: "O item foi removido do carrinho com sucesso."
-    });
+    removeItemMutation.mutate(id);
   };
 
   const handleQuantityChange = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
-    
-    setCartItems(cartItems.map(item => 
-      item.id === id ? { ...item, quantity: newQuantity } : item
-    ));
+    updateQuantityMutation.mutate({ id, newQuantity });
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -57,6 +88,7 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
+    // In a real application, we would navigate to checkout page
     toast({
       title: "Processando pedido",
       description: "Você será redirecionado para finalizar sua compra."
@@ -68,7 +100,11 @@ const Cart = () => {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Carrinho de Compras</h1>
         
-        {cartItems.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+          </div>
+        ) : cartItems.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2">
@@ -79,7 +115,15 @@ const Cart = () => {
                       <div className="flex flex-col sm:flex-row">
                         {/* Product Image */}
                         <div className="sm:w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center mr-4">
-                          <ShoppingBag className="h-10 w-10 text-gray-400" />
+                          {item.image_url ? (
+                            <img 
+                              src={item.image_url} 
+                              alt={item.name} 
+                              className="h-full w-full object-cover rounded-md"
+                            />
+                          ) : (
+                            <ShoppingBag className="h-10 w-10 text-gray-400" />
+                          )}
                         </div>
                         
                         {/* Product Details */}
