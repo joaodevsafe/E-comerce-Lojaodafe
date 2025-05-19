@@ -2,14 +2,19 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, Truck, Package, Clock, ArrowLeft } from "lucide-react";
+import { CheckCircle, Truck, Package, Clock, ArrowLeft, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { orderService } from "@/services/api";
+import { useBankDetails } from "@/contexts/BankDetailsContext";
+import { useContactInfo } from "@/contexts/ContactContext";
+import { createWhatsAppLink } from "@/utils/whatsappLink";
 
 const OrderConfirmation = () => {
   const { orderId } = useParams<{ orderId: string }>();
+  const { bankDetails } = useBankDetails();
+  const { contactInfo } = useContactInfo();
   
   // Fetch order details
   const { data: order, isLoading } = useQuery({
@@ -37,6 +42,11 @@ const OrderConfirmation = () => {
       month: '2-digit',
       year: 'numeric',
     }).format(date);
+  };
+
+  const getWhatsAppLink = () => {
+    const message = `Olá! Gostaria de confirmar o pagamento do meu pedido #${orderId}.`;
+    return createWhatsAppLink(contactInfo.whatsapp, message);
   };
 
   if (isLoading) {
@@ -81,6 +91,104 @@ const OrderConfirmation = () => {
           </p>
         </div>
 
+        {/* Payment Instructions */}
+        <Card className="mb-8">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-xl font-medium">
+              <CreditCard className="mr-2 h-5 w-5" /> Instruções de Pagamento
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-2">Método selecionado: {order.payment_method === 'credit_card' ? 'Transferência Bancária' : 
+                    order.payment_method === 'pix' ? 'PIX' : 'Depósito Bancário'}</h3>
+                
+                {order.payment_method === 'credit_card' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500 mb-1">Banco</p>
+                        <p className="font-medium">{bankDetails.bankName}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Titular</p>
+                        <p className="font-medium">{bankDetails.accountHolder}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Agência</p>
+                        <p className="font-medium">{bankDetails.agencyNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Conta</p>
+                        <p className="font-medium">{bankDetails.accountNumber}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {order.payment_method === 'pix' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500 mb-1">Tipo de Chave</p>
+                        <p className="font-medium">{bankDetails.pixKeyType}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Chave PIX</p>
+                        <p className="font-medium">{bankDetails.pixKey}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Destinatário</p>
+                        <p className="font-medium">{bankDetails.accountHolder}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {order.payment_method === 'boleto' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500 mb-1">Banco</p>
+                        <p className="font-medium">{bankDetails.bankName}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Titular</p>
+                        <p className="font-medium">{bankDetails.accountHolder}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Agência</p>
+                        <p className="font-medium">{bankDetails.agencyNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 mb-1">Conta</p>
+                        <p className="font-medium">{bankDetails.accountNumber}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-amber-50 p-4 rounded-md border border-amber-200">
+                <p className="text-amber-800">
+                  <strong>Importante:</strong> Após realizar o pagamento, envie o comprovante via WhatsApp para agilizar a liberação do seu pedido.
+                </p>
+                <div className="mt-3 flex justify-center">
+                  <a 
+                    href={getWhatsAppLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  >
+                    Enviar Comprovante por WhatsApp
+                  </a>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Order Details */}
         <Card className="mb-8">
           <CardHeader className="pb-3">
@@ -102,13 +210,14 @@ const OrderConfirmation = () => {
                 <div>
                   <p className="text-gray-500 mb-1">Status</p>
                   <div className="flex items-center">
-                    <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2"></span>
-                    <span className="font-medium">Confirmado</span>
+                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
+                    <span className="font-medium">Aguardando Pagamento</span>
                   </div>
                 </div>
                 <div>
                   <p className="text-gray-500 mb-1">Método de Pagamento</p>
-                  <p className="font-medium">{order.payment_method}</p>
+                  <p className="font-medium">{order.payment_method === 'credit_card' ? 'Transferência Bancária' : 
+                    order.payment_method === 'pix' ? 'PIX' : 'Depósito Bancário'}</p>
                 </div>
               </div>
 
@@ -202,12 +311,22 @@ const OrderConfirmation = () => {
                   </div>
                   
                   <div className="relative flex items-center mb-6 pl-8">
+                    <div className="absolute left-0 w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center">
+                      <CreditCard className="h-4 w-4 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Aguardando pagamento</p>
+                      <p className="text-sm text-gray-500">Seu pedido será preparado após confirmação do pagamento</p>
+                    </div>
+                  </div>
+                  
+                  <div className="relative flex items-center mb-6 pl-8">
                     <div className="absolute left-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
                       <Package className="h-4 w-4 text-gray-500" />
                     </div>
                     <div>
                       <p className="font-medium">Em preparação</p>
-                      <p className="text-sm text-gray-500">Seu pedido está sendo preparado</p>
+                      <p className="text-sm text-gray-500">Seu pedido será preparado após confirmação do pagamento</p>
                     </div>
                   </div>
                   

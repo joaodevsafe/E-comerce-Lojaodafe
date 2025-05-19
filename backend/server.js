@@ -139,10 +139,10 @@ app.post('/api/orders', async (req, res) => {
     try {
       await connection.beginTransaction();
       
-      // Create order
+      // Create order with payment status
       const [orderResult] = await connection.query(
-        'INSERT INTO orders (user_id, shipping_address, payment_method, total, subtotal, shipping, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [user_id, JSON.stringify(shipping_address), payment_method, total, subtotal, shipping, 'pending']
+        'INSERT INTO orders (user_id, shipping_address, payment_method, total, subtotal, shipping, status, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [user_id, JSON.stringify(shipping_address), payment_method, total, subtotal, shipping, 'pending', 'awaiting_payment']
       );
       
       const orderId = orderResult.insertId;
@@ -209,22 +209,38 @@ app.get('/api/orders/:id', async (req, res) => {
   }
 });
 
-// Update orders table to include subtotal and shipping
+// Update payment status for an order
+app.put('/api/orders/:id/payment', async (req, res) => {
+  const { payment_status } = req.body;
+  
+  try {
+    await pool.query(
+      'UPDATE orders SET payment_status = ? WHERE id = ?',
+      [payment_status, req.params.id]
+    );
+    res.json({ success: true, message: 'Payment status updated' });
+  } catch (error) {
+    console.error('Error updating payment status:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update schema to include payment fields
 app.get('/api/update-schema', async (req, res) => {
   try {
     const connection = await pool.getConnection();
     try {
       // Check if columns exist
-      const [columns] = await connection.query('SHOW COLUMNS FROM orders LIKE "subtotal"');
+      const [paymentStatusColumns] = await connection.query('SHOW COLUMNS FROM orders LIKE "payment_status"');
       
-      if (columns.length === 0) {
+      if (paymentStatusColumns.length === 0) {
         // Add new columns if they don't exist
         await connection.query(`
           ALTER TABLE orders 
-          ADD COLUMN subtotal DECIMAL(10,2) AFTER total,
-          ADD COLUMN shipping DECIMAL(10,2) AFTER subtotal
+          ADD COLUMN payment_status VARCHAR(30) NOT NULL DEFAULT 'awaiting_payment' AFTER status,
+          ADD COLUMN payment_proof_url VARCHAR(255) NULL AFTER payment_status
         `);
-        res.json({ success: true, message: 'Schema updated' });
+        res.json({ success: true, message: 'Schema updated with payment fields' });
       } else {
         res.json({ success: true, message: 'Schema already up to date' });
       }

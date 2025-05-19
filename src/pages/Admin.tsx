@@ -7,13 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, Layout, Settings, Plus, Pencil, Trash2, ShieldCheck, Phone, Mail, Instagram } from "lucide-react";
+import { Package, Layout, Settings, Plus, Pencil, Trash2, ShieldCheck, Phone, Mail, Instagram, Banknote } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useContactInfo } from "@/contexts/ContactContext";
+import { useBankDetails } from "@/contexts/BankDetailsContext";
 
 const Admin = () => {
   const { toast } = useToast();
   const { contactInfo, updateContactInfo } = useContactInfo();
+  const { bankDetails, updateBankDetails } = useBankDetails();
   
   const [products, setProducts] = useState([
     { id: 1, name: "Camisa Slim Fit", price: 129.90, category: "camisas", image: "/images/camisa-slim.jpg" },
@@ -92,10 +94,26 @@ const Admin = () => {
     updateContactInfo({ [name]: value });
   };
 
+  const handleBankDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    updateBankDetails({ [name]: value });
+  };
+
+  const handlePixKeyTypeChange = (value: string) => {
+    updateBankDetails({ pixKeyType: value });
+  };
+
   const handleSaveSettings = () => {
     toast({
       title: "Configurações salvas",
       description: "As informações de contato foram atualizadas com sucesso."
+    });
+  };
+
+  const handleSaveBankDetails = () => {
+    toast({
+      title: "Dados bancários atualizados",
+      description: "As informações bancárias foram atualizadas com sucesso."
     });
   };
 
@@ -111,12 +129,15 @@ const Admin = () => {
       </div>
       
       <Tabs defaultValue="products">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="products" className="flex items-center gap-2">
             <Package className="h-4 w-4" /> Produtos
           </TabsTrigger>
           <TabsTrigger value="layout" className="flex items-center gap-2">
             <Layout className="h-4 w-4" /> Layout
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="flex items-center gap-2">
+            <Banknote className="h-4 w-4" /> Pagamentos
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" /> Configurações
@@ -319,6 +340,97 @@ const Admin = () => {
                 
                 <div className="flex justify-end">
                   <Button>Salvar Alterações</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="payments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dados Bancários</CardTitle>
+              <CardDescription>Configure as informações bancárias para recebimento de pagamentos</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="bankName" className="text-sm font-medium">Nome do Banco</label>
+                    <Input 
+                      id="bankName" 
+                      name="bankName"
+                      value={bankDetails.bankName} 
+                      onChange={handleBankDetailsChange}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="accountHolder" className="text-sm font-medium">Titular da Conta</label>
+                    <Input 
+                      id="accountHolder" 
+                      name="accountHolder"
+                      value={bankDetails.accountHolder} 
+                      onChange={handleBankDetailsChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="agencyNumber" className="text-sm font-medium">Número da Agência</label>
+                    <Input 
+                      id="agencyNumber" 
+                      name="agencyNumber"
+                      value={bankDetails.agencyNumber} 
+                      onChange={handleBankDetailsChange}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="accountNumber" className="text-sm font-medium">Número da Conta</label>
+                    <Input 
+                      id="accountNumber" 
+                      name="accountNumber"
+                      value={bankDetails.accountNumber} 
+                      onChange={handleBankDetailsChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="pixKeyType" className="text-sm font-medium">Tipo de Chave PIX</label>
+                    <Select 
+                      value={bankDetails.pixKeyType}
+                      onValueChange={handlePixKeyTypeChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o tipo de chave" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CPF">CPF</SelectItem>
+                        <SelectItem value="CNPJ">CNPJ</SelectItem>
+                        <SelectItem value="E-mail">E-mail</SelectItem>
+                        <SelectItem value="Celular">Celular</SelectItem>
+                        <SelectItem value="Aleatória">Chave Aleatória</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="pixKey" className="text-sm font-medium">Chave PIX</label>
+                    <Input 
+                      id="pixKey" 
+                      name="pixKey"
+                      value={bankDetails.pixKey} 
+                      onChange={handleBankDetailsChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveBankDetails}>Salvar Dados Bancários</Button>
                 </div>
               </div>
             </CardContent>

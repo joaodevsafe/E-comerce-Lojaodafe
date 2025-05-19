@@ -1,15 +1,18 @@
 
 import { useState } from "react";
-import { CreditCard } from "lucide-react";
+import { CreditCard, Banknote, Receipt } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBankDetails } from "@/contexts/BankDetailsContext";
+import { createWhatsAppLink } from "@/utils/whatsappLink";
+import { useContactInfo } from "@/contexts/ContactContext";
 
 // Payment method options
 const paymentMethods = [
-  { id: "credit_card", name: "Cartão de Crédito", icon: CreditCard },
-  { id: "pix", name: "PIX", icon: CreditCard },
-  { id: "boleto", name: "Boleto", icon: CreditCard }
+  { id: "credit_card", name: "Transferência Bancária", icon: CreditCard },
+  { id: "pix", name: "PIX", icon: Banknote },
+  { id: "boleto", name: "Depósito Bancário", icon: Receipt }
 ];
 
 interface PaymentMethodSelectorProps {
@@ -21,6 +24,14 @@ const PaymentMethodSelector = ({
   selectedPayment, 
   setSelectedPayment 
 }: PaymentMethodSelectorProps) => {
+  const { bankDetails } = useBankDetails();
+  const { contactInfo } = useContactInfo();
+  
+  const getWhatsAppLink = () => {
+    const message = "Olá! Gostaria de confirmar o pagamento do meu pedido.";
+    return createWhatsAppLink(contactInfo.whatsapp, message);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -53,39 +64,103 @@ const PaymentMethodSelector = ({
           ))}
 
           {selectedPayment === 'credit_card' && (
-            <div className="pt-4 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-gray-50 rounded-md mt-4 space-y-4">
+              <p className="text-gray-700">Instruções para transferência:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label htmlFor="card-number">Número do Cartão</Label>
-                  <Input id="card-number" placeholder="0000 0000 0000 0000" className="mt-1" />
+                  <p className="text-gray-600">Banco:</p>
+                  <p className="font-medium">{bankDetails.bankName}</p>
                 </div>
                 <div>
-                  <Label htmlFor="card-name">Nome no Cartão</Label>
-                  <Input id="card-name" placeholder="Nome completo" className="mt-1" />
+                  <p className="text-gray-600">Titular:</p>
+                  <p className="font-medium">{bankDetails.accountHolder}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Agência:</p>
+                  <p className="font-medium">{bankDetails.agencyNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Conta:</p>
+                  <p className="font-medium">{bankDetails.accountNumber}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="expiry">Validade (MM/AA)</Label>
-                  <Input id="expiry" placeholder="MM/AA" className="mt-1" />
-                </div>
-                <div>
-                  <Label htmlFor="cvc">CVC</Label>
-                  <Input id="cvc" placeholder="000" className="mt-1" />
-                </div>
+              <div className="text-sm mt-2">
+                <p className="text-gray-600 mb-2">Após realizar a transferência, envie o comprovante para confirmação:</p>
+                <a 
+                  href={getWhatsAppLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Enviar comprovante por WhatsApp
+                </a>
               </div>
             </div>
           )}
 
           {selectedPayment === 'pix' && (
-            <div className="p-4 text-center bg-gray-50 rounded-md mt-4">
-              <p className="text-gray-600">Após confirmar o pedido, você receberá um QR Code para pagamento.</p>
+            <div className="p-4 bg-gray-50 rounded-md mt-4">
+              <p className="text-gray-700 mb-3">Dados para pagamento por PIX:</p>
+              <div className="space-y-2 mb-4">
+                <div>
+                  <p className="text-gray-600 text-sm">Tipo de Chave:</p>
+                  <p className="font-medium">{bankDetails.pixKeyType}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm">Chave PIX:</p>
+                  <p className="font-medium">{bankDetails.pixKey}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600 text-sm">Destinatário:</p>
+                  <p className="font-medium">{bankDetails.accountHolder}</p>
+                </div>
+              </div>
+              <div className="text-sm">
+                <p className="text-gray-600 mb-2">Após realizar o pagamento, envie o comprovante para confirmação:</p>
+                <a 
+                  href={getWhatsAppLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Enviar comprovante por WhatsApp
+                </a>
+              </div>
             </div>
           )}
 
           {selectedPayment === 'boleto' && (
-            <div className="p-4 text-center bg-gray-50 rounded-md mt-4">
-              <p className="text-gray-600">Após confirmar o pedido, você receberá o boleto para pagamento.</p>
+            <div className="p-4 bg-gray-50 rounded-md mt-4 space-y-4">
+              <p className="text-gray-700">Instruções para depósito bancário:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-600">Banco:</p>
+                  <p className="font-medium">{bankDetails.bankName}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Titular:</p>
+                  <p className="font-medium">{bankDetails.accountHolder}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Agência:</p>
+                  <p className="font-medium">{bankDetails.agencyNumber}</p>
+                </div>
+                <div>
+                  <p className="text-gray-600">Conta:</p>
+                  <p className="font-medium">{bankDetails.accountNumber}</p>
+                </div>
+              </div>
+              <div className="text-sm mt-2">
+                <p className="text-gray-600 mb-2">Após realizar o depósito, envie o comprovante para confirmação:</p>
+                <a 
+                  href={getWhatsAppLink()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Enviar comprovante por WhatsApp
+                </a>
+              </div>
             </div>
           )}
         </div>
