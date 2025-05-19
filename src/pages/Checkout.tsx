@@ -6,7 +6,7 @@ import { AddressForm } from "@/components/checkout/AddressForm";
 import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelector";
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { useCheckout } from "@/hooks/useCheckout";
-import { EmptyCart } from "@/components/cart/EmptyCart";
+import EmptyCart from "@/components/cart/EmptyCart";
 
 const Checkout = () => {
   const {
