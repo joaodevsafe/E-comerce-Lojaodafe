@@ -15,14 +15,16 @@ const Navbar = () => {
   return (
     <div className="bg-white border-b sticky top-0 z-10">
       <div className="max-w-6xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-shrink-0">
-            <Link to="/" className="text-xl font-bold tracking-wider">LOJAODAFE</Link>
+          <div className="flex-shrink-0 mr-6">
+            <Link to="/" className="text-2xl font-bold tracking-wider text-primary hover:text-primary/90 transition-colors relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-100 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary/70">
+              LOJAODAFE
+            </Link>
           </div>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:block">
+          <div className="hidden md:block ml-4">
             <div className="flex items-center space-x-8">
               <Link to="/" className="text-gray-700 hover:text-gray-900">Início</Link>
               <Link to="/produtos" className="text-gray-700 hover:text-gray-900">Feminino</Link>
