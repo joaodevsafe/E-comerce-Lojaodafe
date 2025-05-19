@@ -3,10 +3,15 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Heart, User, Search, Menu, X, Settings } from "lucide-react";
+import { ShoppingBag, Search, Menu, X, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import LoginDialog from "./LoginDialog";
+import DonationQRCode from "./DonationQRCode";
+import UserMenu from "./UserMenu";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAuthenticated, isAdmin } = useAuth();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -47,11 +52,8 @@ const Navbar = () => {
           
           {/* Icons */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/favoritos">
-                <Heart className="h-5 w-5" />
-              </Link>
-            </Button>
+            <DonationQRCode />
+            
             <Button variant="ghost" size="icon" asChild>
               <Link to="/carrinho">
                 <div className="relative">
@@ -62,16 +64,20 @@ const Navbar = () => {
                 </div>
               </Link>
             </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/conta">
-                <User className="h-5 w-5" />
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/admin">
-                <Settings className="h-5 w-5" />
-              </Link>
-            </Button>
+            
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <LoginDialog />
+            )}
+            
+            {isAdmin && (
+              <Button variant="ghost" size="icon" asChild>
+                <Link to="/admin">
+                  <Settings className="h-5 w-5" />
+                </Link>
+              </Button>
+            )}
           </div>
           
           {/* Mobile menu button */}
@@ -153,20 +159,58 @@ const Navbar = () => {
             >
               Meus Favoritos
             </Link>
-            <Link 
-              to="/conta" 
-              className="block py-2 text-gray-700"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Minha Conta
-            </Link>
-            <Link 
-              to="/admin" 
-              className="block py-2 text-gray-700"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Administração
-            </Link>
+            
+            <div className="py-2">
+              {isAuthenticated ? (
+                <div className="space-y-3">
+                  <Link 
+                    to="/conta" 
+                    className="block py-2 text-gray-700"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Minha Conta
+                  </Link>
+                  {isAdmin && (
+                    <Link 
+                      to="/admin" 
+                      className="block py-2 text-gray-700"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Administração
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <Button 
+                  className="w-full"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                  }}
+                  asChild
+                >
+                  <LoginDialog>
+                    <div className="flex items-center">
+                      <span>Entrar / Cadastrar</span>
+                    </div>
+                  </LoginDialog>
+                </Button>
+              )}
+            </div>
+            
+            <div className="py-2">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setIsMenuOpen(false)}
+                asChild
+              >
+                <DonationQRCode>
+                  <div className="flex items-center">
+                    <span>Doar para Animais de Rua</span>
+                  </div>
+                </DonationQRCode>
+              </Button>
+            </div>
           </div>
         </div>
       )}
