@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +18,7 @@ const Cart = () => {
   const { data: cartItems = [] } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems,
-    onSettled: () => setIsLoading(false),
+    onSuccess: () => setIsLoading(false),
     onError: (error) => {
       console.error('Error fetching cart:', error);
       toast({
@@ -27,6 +26,7 @@ const Cart = () => {
         description: "Não foi possível carregar os itens do seu carrinho.",
         variant: "destructive"
       });
+      setIsLoading(false);
     }
   });
 
@@ -71,9 +71,9 @@ const Cart = () => {
     removeItemMutation.mutate(id);
   };
 
-  const handleQuantityChange = (id: number, newQuantity: number) => {
-    if (newQuantity < 1) return;
-    updateQuantityMutation.mutate({ id, newQuantity });
+  const handleQuantityChange = (id: number, quantity: number) => {
+    if (quantity < 1) return;
+    updateQuantityMutation.mutate({ id, quantity });
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
