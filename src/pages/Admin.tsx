@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,11 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, Layout, Settings, Plus, Pencil, Trash2, ShieldCheck } from "lucide-react";
+import { Package, Layout, Settings, Plus, Pencil, Trash2, ShieldCheck, Phone, Mail, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useContactInfo } from "@/contexts/ContactContext";
 
 const Admin = () => {
   const { toast } = useToast();
+  const { contactInfo, updateContactInfo } = useContactInfo();
+  
   const [products, setProducts] = useState([
     { id: 1, name: "Camisa Slim Fit", price: 129.90, category: "camisas", image: "/images/camisa-slim.jpg" },
     { id: 2, name: "Jeans Premium", price: 259.90, category: "calcas", image: "/images/jeans-premium.jpg" },
@@ -82,6 +84,18 @@ const Admin = () => {
     toast({
       title: "Produto removido",
       description: "O produto foi removido com sucesso."
+    });
+  };
+
+  const handleContactInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    updateContactInfo({ [name]: value });
+  };
+
+  const handleSaveSettings = () => {
+    toast({
+      title: "Configurações salvas",
+      description: "As informações de contato foram atualizadas com sucesso."
     });
   };
 
@@ -328,29 +342,77 @@ const Admin = () => {
                   <label htmlFor="store_description" className="text-sm font-medium">Descrição da Loja</label>
                   <Textarea 
                     id="store_description" 
-                    defaultValue="Sua loja de moda online com as últimas tendências, qualidade e preços justos." 
+                    defaultValue="Sua loja de moda online com as últimas tendências e preços justos." 
                   />
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label htmlFor="contact_email" className="text-sm font-medium">Email de Contato</label>
-                    <Input id="contact_email" defaultValue="contato@lojaodafe.com" />
+                    <label htmlFor="email" className="text-sm font-medium flex items-center gap-2">
+                      <Mail className="h-4 w-4" /> Email de Contato
+                    </label>
+                    <Input 
+                      id="email" 
+                      name="email"
+                      value={contactInfo.email} 
+                      onChange={handleContactInfoChange}
+                    />
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="contact_phone" className="text-sm font-medium">Telefone de Contato</label>
-                    <Input id="contact_phone" defaultValue="(11) 99999-9999" />
+                    <label htmlFor="phone" className="text-sm font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4" /> Telefone de Contato
+                    </label>
+                    <Input 
+                      id="phone" 
+                      name="phone"
+                      value={contactInfo.phone} 
+                      onChange={handleContactInfoChange}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="whatsapp" className="text-sm font-medium flex items-center gap-2">
+                      <Phone className="h-4 w-4" /> WhatsApp
+                    </label>
+                    <Input 
+                      id="whatsapp" 
+                      name="whatsapp"
+                      value={contactInfo.whatsapp} 
+                      onChange={handleContactInfoChange}
+                      placeholder="(99) 99999-9999"
+                    />
+                    <p className="text-xs text-gray-500">Usado para contatos diretos e suporte ao cliente</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="instagram" className="text-sm font-medium flex items-center gap-2">
+                      <Instagram className="h-4 w-4" /> Instagram
+                    </label>
+                    <Input 
+                      id="instagram" 
+                      name="instagram"
+                      value={contactInfo.instagram} 
+                      onChange={handleContactInfoChange}
+                      placeholder="@seuperfil"
+                    />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="store_address" className="text-sm font-medium">Endereço</label>
-                  <Input id="store_address" defaultValue="Rua Exemplo, 123 - Bairro - Cidade/UF" />
+                  <label htmlFor="address" className="text-sm font-medium">Endereço</label>
+                  <Input 
+                    id="address" 
+                    name="address"
+                    value={contactInfo.address} 
+                    onChange={handleContactInfoChange}
+                  />
                 </div>
                 
                 <div className="flex justify-end">
-                  <Button>Salvar Configurações</Button>
+                  <Button onClick={handleSaveSettings}>Salvar Configurações</Button>
                 </div>
               </div>
             </CardContent>

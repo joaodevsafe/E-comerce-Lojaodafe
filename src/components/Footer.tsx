@@ -4,9 +4,12 @@ import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "luci
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useContactInfo } from "@/contexts/ContactContext";
+import { createWhatsAppLink } from "@/utils/whatsappLink";
 
 const Footer = () => {
   const { toast } = useToast();
+  const { contactInfo } = useContactInfo();
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,6 +17,14 @@ const Footer = () => {
       title: "Inscrição realizada com sucesso!",
       description: "Você receberá nossas novidades por email."
     });
+  };
+
+  const handleWhatsAppClick = () => {
+    const whatsappLink = createWhatsAppLink(
+      contactInfo.whatsapp,
+      "Olá! Estou entrando em contato através do site."
+    );
+    window.open(whatsappLink, '_blank');
   };
 
   return (
@@ -53,7 +64,10 @@ const Footer = () => {
                 <a href="#" className="hover:text-white">
                   <Facebook className="h-5 w-5" />
                 </a>
-                <a href="#" className="hover:text-white">
+                <a href={`https://instagram.com/${contactInfo.instagram.replace('@', '')}`} 
+                   className="hover:text-white"
+                   target="_blank" 
+                   rel="noopener noreferrer">
                   <Instagram className="h-5 w-5" />
                 </a>
                 <a href="#" className="hover:text-white">
@@ -114,15 +128,21 @@ const Footer = () => {
               <ul className="space-y-4">
                 <li className="flex items-start">
                   <MapPin className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-                  <span>Av. Paulista, 1000 - São Paulo, SP</span>
+                  <span>{contactInfo.address}</span>
                 </li>
                 <li className="flex items-center">
                   <Phone className="h-5 w-5 mr-2 flex-shrink-0" />
-                  <span>(11) 9999-9999</span>
+                  <span>{contactInfo.phone}</span>
                 </li>
                 <li className="flex items-center">
                   <Mail className="h-5 w-5 mr-2 flex-shrink-0" />
-                  <span>contato@modaestilo.com.br</span>
+                  <span>{contactInfo.email}</span>
+                </li>
+                <li className="mt-4">
+                  <Button variant="outline" size="sm" onClick={handleWhatsAppClick} className="flex items-center gap-2">
+                    <Phone className="h-4 w-4" />
+                    Contate-nos via WhatsApp
+                  </Button>
                 </li>
               </ul>
             </div>
