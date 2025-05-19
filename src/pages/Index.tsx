@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShoppingBag, Star, Calendar, Heart, Truck } from "lucide-react";
+import { ShoppingBag, Star, Calendar, Heart, Truck, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
@@ -156,12 +156,12 @@ const Index = () => {
 
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader>
-                <Star className="h-8 w-8 text-yellow-500 mb-2" />
-                <CardTitle>Produtos de Qualidade</CardTitle>
-                <CardDescription>Materiais selecionados cuidadosamente.</CardDescription>
+                <Phone className="h-8 w-8 text-yellow-500 mb-2" />
+                <CardTitle>Atendimento Personalizado</CardTitle>
+                <CardDescription>Estamos sempre disponíveis para você.</CardDescription>
               </CardHeader>
               <CardContent>
-                <p>Trabalhamos apenas com materiais premium e processos de fabricação sustentáveis.</p>
+                <p>Nossa equipe está preparada para oferecer o melhor atendimento e tirar todas as suas dúvidas.</p>
               </CardContent>
               <CardFooter>
                 <Button variant="ghost" onClick={handleExplore}>Saiba Mais</Button>

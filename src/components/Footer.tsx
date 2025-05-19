@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ const Footer = () => {
             {/* Logo and About */}
             <div>
               <Link to="/" className="text-2xl font-bold tracking-wider text-white">LOJAODAFE</Link>
-              <p className="mt-4">Sua loja de moda online com as últimas tendências, qualidade e preços justos.</p>
+              <p className="mt-4">Sua loja de moda online com as últimas tendências e preços justos.</p>
               <div className="flex space-x-4 mt-6">
                 <a href="#" className="hover:text-white">
                   <Facebook className="h-5 w-5" />
