@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,7 @@ const Footer = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Logo and About */}
             <div>
-              <Link to="/" className="text-2xl font-bold tracking-wider text-white">MODA&ESTILO</Link>
+              <Link to="/" className="text-2xl font-bold tracking-wider text-white">LOJAODAFE</Link>
               <p className="mt-4">Sua loja de moda online com as últimas tendências, qualidade e preços justos.</p>
               <div className="flex space-x-4 mt-6">
                 <a href="#" className="hover:text-white">
@@ -129,7 +128,7 @@ const Footer = () => {
           </div>
           
           <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p>© 2025 Moda & Estilo. Todos os direitos reservados.</p>
+            <p>© 2025 LOJAODAFE. Todos os direitos reservados.</p>
             <div className="flex items-center space-x-4 mt-4 md:mt-0">
               <img src="https://via.placeholder.com/40x25" alt="Visa" className="h-6" />
               <img src="https://via.placeholder.com/40x25" alt="Mastercard" className="h-6" />
