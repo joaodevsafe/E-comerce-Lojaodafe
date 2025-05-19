@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,20 +15,21 @@ const Cart = () => {
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
   
-  // Fetch cart items using React Query with correct syntax
+  // Fetch cart items using React Query
   const { data: cartItems = [] } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems,
-    onSettled: (data, error) => {
+    onSuccess: () => {
       setIsLoading(false);
-      if (error) {
-        console.error('Error fetching cart:', error);
-        toast({
-          title: "Erro ao carregar o carrinho",
-          description: "Não foi possível carregar os itens do seu carrinho.",
-          variant: "destructive"
-        });
-      }
+    },
+    onError: (error) => {
+      setIsLoading(false);
+      console.error('Error fetching cart:', error);
+      toast({
+        title: "Erro ao carregar o carrinho",
+        description: "Não foi possível carregar os itens do seu carrinho.",
+        variant: "destructive"
+      });
     }
   });
 
