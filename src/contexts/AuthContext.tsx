@@ -16,6 +16,9 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  registerAdmin: (email: string, password: string, name: string) => User;
+  removeAdmin: (id: string) => void;
+  getAdminUsers: () => User[];
   logout: () => void;
 };
 
@@ -41,9 +44,109 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
   
+  // Função para obter a lista de administradores armazenados
+  const getAdminUsers = (): User[] => {
+    try {
+      const storedAdmins = localStorage.getItem("adminUsers");
+      if (storedAdmins) {
+        return JSON.parse(storedAdmins);
+      }
+      
+      // Se não há administradores cadastrados, retorna apenas o admin padrão
+      const defaultAdmin = { id: "1", email: "admin@lojaodafe.com", name: "Admin", role: "admin" as const };
+      localStorage.setItem("adminUsers", JSON.stringify([defaultAdmin]));
+      return [defaultAdmin];
+    } catch (error) {
+      console.error("Erro ao obter administradores:", error);
+      return [];
+    }
+  };
+  
+  // Função para cadastrar um novo administrador
+  const registerAdmin = (email: string, password: string, name: string): User => {
+    try {
+      const admins = getAdminUsers();
+      
+      // Verificar se já existe um administrador com este email
+      if (admins.some(admin => admin.email === email)) {
+        throw new Error("Email já está em uso");
+      }
+      
+      const newAdmin = {
+        id: Math.random().toString(36).substr(2, 9),
+        email,
+        name,
+        role: "admin" as const
+      };
+      
+      // Armazenar senha para este administrador (em produção, isso seria feito com hash)
+      const adminPasswords = JSON.parse(localStorage.getItem("adminPasswords") || "{}");
+      adminPasswords[email] = password;
+      localStorage.setItem("adminPasswords", JSON.stringify(adminPasswords));
+      
+      // Atualizar a lista de administradores
+      const updatedAdmins = [...admins, newAdmin];
+      localStorage.setItem("adminUsers", JSON.stringify(updatedAdmins));
+      
+      return newAdmin;
+    } catch (error) {
+      console.error("Erro ao cadastrar administrador:", error);
+      throw error;
+    }
+  };
+  
+  // Função para remover um administrador
+  const removeAdmin = (id: string): void => {
+    try {
+      const admins = getAdminUsers();
+      
+      // Não permitir remover o admin padrão
+      if (id === "1") {
+        throw new Error("Não é possível remover o administrador padrão");
+      }
+      
+      const adminToRemove = admins.find(admin => admin.id === id);
+      if (!adminToRemove) {
+        throw new Error("Administrador não encontrado");
+      }
+      
+      // Remover o admin da lista
+      const updatedAdmins = admins.filter(admin => admin.id !== id);
+      localStorage.setItem("adminUsers", JSON.stringify(updatedAdmins));
+      
+      // Remover também a senha deste admin
+      const adminPasswords = JSON.parse(localStorage.getItem("adminPasswords") || "{}");
+      delete adminPasswords[adminToRemove.email];
+      localStorage.setItem("adminPasswords", JSON.stringify(adminPasswords));
+      
+    } catch (error) {
+      console.error("Erro ao remover administrador:", error);
+      throw error;
+    }
+  };
+  
   const login = async (email: string, password: string) => {
     try {
-      // Mock API call - replace with actual authentication
+      // Verificar se é um administrador
+      const admins = getAdminUsers();
+      const adminUser = admins.find(admin => admin.email === email);
+      
+      if (adminUser) {
+        // Verificar a senha do admin
+        const adminPasswords = JSON.parse(localStorage.getItem("adminPasswords") || "{}");
+        
+        if (adminPasswords[email] === password) {
+          setUser(adminUser);
+          localStorage.setItem("user", JSON.stringify(adminUser));
+          toast({
+            title: "Login realizado com sucesso",
+            description: "Bem-vindo ao painel administrativo",
+          });
+          return;
+        }
+      }
+      
+      // Se não for admin ou a senha estiver incorreta, continua com o login normal
       if (email === "admin@lojaodafe.com" && password === "admin123") {
         const adminUser = { id: "1", email, name: "Admin", role: "admin" as const };
         setUser(adminUser);
@@ -148,7 +251,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin, 
         login, 
         loginWithGoogle, 
-        register, 
+        register,
+        registerAdmin,
+        removeAdmin,
+        getAdminUsers,
         logout 
       }}
     >

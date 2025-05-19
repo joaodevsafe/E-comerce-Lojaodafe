@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, Layout, Settings, Plus, Pencil, Trash2 } from "lucide-react";
+import { Package, Layout, Settings, Plus, Pencil, Trash2, ShieldCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
@@ -86,7 +87,14 @@ const Admin = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <h1 className="text-3xl font-bold mb-8">Painel de Administração - LOJAODAFE</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Painel de Administração - LOJAODAFE</h1>
+        <Link to="/admin/usuarios">
+          <Button variant="outline" className="flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4" /> Gerenciar Administradores
+          </Button>
+        </Link>
+      </div>
       
       <Tabs defaultValue="products">
         <TabsList className="grid w-full grid-cols-3 mb-8">

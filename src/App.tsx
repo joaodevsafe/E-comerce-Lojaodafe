@@ -10,6 +10,7 @@ import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
 import Admin from "./pages/Admin";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -35,6 +36,11 @@ const App = () => (
                 <Route path="/admin" element={
                   <ProtectedRoute requiresAdmin>
                     <Admin />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/usuarios" element={
+                  <ProtectedRoute requiresAdmin>
+                    <AdminUsers />
                   </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />
