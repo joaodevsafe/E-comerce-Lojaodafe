@@ -31,6 +31,42 @@ export interface CartItem {
   image_url: string;
 }
 
+export interface OrderItem {
+  id: number;
+  order_id: number;
+  product_id: number;
+  quantity: number;
+  price: number;
+  size: string;
+  color: string;
+  name: string;
+}
+
+export interface ShippingAddress {
+  fullName: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  phone: string;
+}
+
+export interface Order {
+  id: number;
+  user_id: string;
+  items: OrderItem[];
+  shipping_address: ShippingAddress;
+  payment_method: string;
+  status: string;
+  total: number;
+  subtotal: number;
+  shipping: number;
+  created_at: string;
+}
+
 export const productService = {
   getAll: async (): Promise<Product[]> => {
     const response = await api.get('/products');
@@ -91,15 +127,23 @@ export const orderService = {
   ): Promise<any> => {
     const userId = cartService.getUserId();
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shipping = total >= 199 ? 0 : 19.9;
     
     const response = await api.post('/orders', {
       user_id: userId,
       items,
       shipping_address: shippingAddress,
       payment_method: paymentMethod,
-      total
+      total: total + shipping,
+      subtotal: total,
+      shipping
     });
     
+    return response.data;
+  },
+  
+  getOrderById: async (orderId: number): Promise<Order> => {
+    const response = await api.get(`/orders/${orderId}`);
     return response.data;
   }
 };

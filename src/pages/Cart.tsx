@@ -1,16 +1,18 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { ShoppingBag, Trash2, CreditCard } from "lucide-react";
+import { ShoppingBag, Trash2, CreditCard, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { cartService, CartItem } from "@/services/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const Cart = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
   
@@ -92,11 +94,7 @@ const Cart = () => {
   };
 
   const handleCheckout = () => {
-    // In a real application, we would navigate to checkout page
-    toast({
-      title: "Processando pedido",
-      description: "Você será redirecionado para finalizar sua compra."
-    });
+    navigate('/checkout');
   };
 
   return (
@@ -238,6 +236,7 @@ const Cart = () => {
                   >
                     <CreditCard className="mr-2 h-4 w-4" />
                     Finalizar Compra
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardContent>
               </Card>

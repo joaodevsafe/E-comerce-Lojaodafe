@@ -9,6 +9,8 @@ import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import OrderConfirmation from "./pages/OrderConfirmation";
 import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
@@ -33,6 +35,8 @@ const App = () => (
                 <Route path="/produtos" element={<Products />} />
                 <Route path="/produto/:id" element={<ProductDetail />} />
                 <Route path="/carrinho" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/pedido-confirmado/:orderId" element={<OrderConfirmation />} />
                 <Route path="/admin" element={
                   <ProtectedRoute requiresAdmin>
                     <Admin />

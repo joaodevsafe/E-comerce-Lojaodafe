@@ -131,7 +131,7 @@ app.delete('/api/cart/:id', async (req, res) => {
 
 // Orders API
 app.post('/api/orders', async (req, res) => {
-  const { user_id, items, shipping_address, payment_method, total } = req.body;
+  const { user_id, items, shipping_address, payment_method, total, subtotal, shipping } = req.body;
   
   try {
     const connection = await pool.getConnection();
@@ -141,8 +141,8 @@ app.post('/api/orders', async (req, res) => {
       
       // Create order
       const [orderResult] = await connection.query(
-        'INSERT INTO orders (user_id, shipping_address, payment_method, total, status) VALUES (?, ?, ?, ?, ?)',
-        [user_id, JSON.stringify(shipping_address), payment_method, total, 'pending']
+        'INSERT INTO orders (user_id, shipping_address, payment_method, total, subtotal, shipping, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [user_id, JSON.stringify(shipping_address), payment_method, total, subtotal, shipping, 'pending']
       );
       
       const orderId = orderResult.insertId;
@@ -168,6 +168,71 @@ app.post('/api/orders', async (req, res) => {
     }
   } catch (error) {
     console.error('Error creating order:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Order by ID
+app.get('/api/orders/:id', async (req, res) => {
+  try {
+    // Get order details
+    const [orderRows] = await pool.query(
+      `SELECT * FROM orders WHERE id = ?`,
+      [req.params.id]
+    );
+    
+    if (orderRows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    const order = orderRows[0];
+    
+    // Get order items with product details
+    const [itemRows] = await pool.query(
+      `SELECT oi.*, p.name 
+       FROM order_items oi
+       JOIN products p ON oi.product_id = p.id
+       WHERE oi.order_id = ?`,
+      [req.params.id]
+    );
+    
+    // Parse shipping address from JSON string
+    order.shipping_address = JSON.parse(order.shipping_address);
+    
+    // Add items to order
+    order.items = itemRows;
+    
+    res.json(order);
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update orders table to include subtotal and shipping
+app.get('/api/update-schema', async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+    try {
+      // Check if columns exist
+      const [columns] = await connection.query('SHOW COLUMNS FROM orders LIKE "subtotal"');
+      
+      if (columns.length === 0) {
+        // Add new columns if they don't exist
+        await connection.query(`
+          ALTER TABLE orders 
+          ADD COLUMN subtotal DECIMAL(10,2) AFTER total,
+          ADD COLUMN shipping DECIMAL(10,2) AFTER subtotal
+        `);
+        res.json({ success: true, message: 'Schema updated' });
+      } else {
+        res.json({ success: true, message: 'Schema already up to date' });
+      }
+    } finally {
+      connection.release();
+    }
+  } catch (error) {
+    console.error('Error updating schema:', error);
     res.status(500).json({ error: error.message });
   }
 });
