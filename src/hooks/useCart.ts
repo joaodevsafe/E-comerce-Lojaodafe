@@ -13,17 +13,18 @@ export const useCart = () => {
   const { data: cartItems = [] } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems,
-    onSuccess: () => {
+    onSettled: () => {
       setIsLoading(false);
     },
-    onError: (error: any) => {
-      setIsLoading(false); // Make sure loading is set to false even on error
-      console.error('Error fetching cart:', error);
-      toast({
-        title: "Erro ao carregar o carrinho",
-        description: "Não foi possível carregar os itens do seu carrinho.",
-        variant: "destructive"
-      });
+    meta: {
+      onError: (error: any) => {
+        console.error('Error fetching cart:', error);
+        toast({
+          title: "Erro ao carregar o carrinho",
+          description: "Não foi possível carregar os itens do seu carrinho.",
+          variant: "destructive"
+        });
+      }
     }
   });
 
