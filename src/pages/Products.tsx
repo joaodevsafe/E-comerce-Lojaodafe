@@ -2,6 +2,9 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { productService } from "@/services/api";
+import { useCart } from "@/hooks/useCart";
 import ProductFilters from "@/components/products/ProductFilters";
 import ProductViewOptions from "@/components/products/ProductViewOptions";
 import ProductsList from "@/components/products/ProductsList";
@@ -9,10 +12,17 @@ import ProductsList from "@/components/products/ProductsList";
 const Products = () => {
   const { toast } = useToast();
   const location = useLocation();
+  const { handleAddItem } = useCart();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: "", max: "" });
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+
+  // Fetch products from API
+  const { data: products = [], isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: productService.getAll
+  });
 
   // Parse URL parameters on component mount
   useEffect(() => {
@@ -65,58 +75,6 @@ const Products = () => {
     });
   };
 
-  // Produtos de exemplo
-  const products = [
-    {
-      id: 1,
-      name: "Camisa Slim Fit",
-      price: 129.90,
-      description: "Camisa de algodão com corte slim, ideal para ocasiões formais ou casuais.",
-      category: "Masculino",
-      image_url: ""
-    },
-    {
-      id: 2,
-      name: "Vestido Floral",
-      price: 189.90,
-      description: "Vestido leve com estampa floral, perfeito para a primavera e o verão.",
-      category: "Feminino",
-      image_url: ""
-    },
-    {
-      id: 3,
-      name: "Jeans Premium",
-      price: 259.90,
-      description: "Jeans de alta qualidade com modelagem moderna e confortável.",
-      category: "Masculino",
-      image_url: ""
-    },
-    {
-      id: 4,
-      name: "Blusa Básica",
-      price: 79.90,
-      description: "Blusa de algodão com design básico e versátil.",
-      category: "Feminino",
-      image_url: ""
-    },
-    {
-      id: 5,
-      name: "Camiseta Estampada",
-      price: 89.90,
-      description: "Camiseta com estampa exclusiva em algodão premium.",
-      category: "Masculino",
-      image_url: ""
-    },
-    {
-      id: 6,
-      name: "Vestido Midi",
-      price: 219.90,
-      description: "Vestido midi em tecido leve e fluido, elegante e confortável.",
-      category: "Feminino",
-      image_url: ""
-    }
-  ];
-
   // Filter products based on selected filters
   const filteredProducts = products.filter(product => {
     // Filter by category
@@ -127,7 +85,9 @@ const Products = () => {
     return true;
   });
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (productId: number) => {
+    // Default values for size and color
+    handleAddItem(productId, 1, "M", "Padrão");
     toast({
       title: "Produto adicionado ao carrinho!",
       description: "Você pode finalizar sua compra a qualquer momento."
@@ -146,7 +106,6 @@ const Products = () => {
       title: "Filtros aplicados",
       description: "Os produtos foram filtrados conforme sua seleção."
     });
-    // Implement actual filtering logic here
   };
 
   return (
@@ -160,34 +119,41 @@ const Products = () => {
       </div>
 
       <div className="max-w-6xl mx-auto py-8 px-4 md:px-6">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Filtros - Lado Esquerdo */}
-          <div className="md:w-1/4">
-            <ProductFilters 
-              selectedCategories={selectedCategories}
-              onCategoryChange={handleCategoryChange}
-              priceRange={priceRange}
-              onPriceRangeChange={setPriceRange}
-              selectedSizes={selectedSizes}
-              onSizeSelect={handleSizeSelect}
-              onApplyFilters={handleApplyFilters}
-            />
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
           </div>
+        ) : (
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Filtros - Lado Esquerdo */}
+            <div className="md:w-1/4">
+              <ProductFilters 
+                selectedCategories={selectedCategories}
+                onCategoryChange={handleCategoryChange}
+                priceRange={priceRange}
+                onPriceRangeChange={setPriceRange}
+                selectedSizes={selectedSizes}
+                onSizeSelect={handleSizeSelect}
+                onApplyFilters={handleApplyFilters}
+              />
+            </div>
 
-          {/* Lista de Produtos - Lado Direito */}
-          <div className="md:w-3/4">
-            <ProductViewOptions 
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-            />
+            {/* Lista de Produtos - Lado Direito */}
+            <div className="md:w-3/4">
+              <ProductViewOptions 
+                viewMode={viewMode}
+                onViewModeChange={setViewMode}
+              />
 
-            <ProductsList 
-              products={filteredProducts}
-              viewMode={viewMode}
-              onFavorite={handleFavorite}
-            />
+              <ProductsList 
+                products={filteredProducts}
+                viewMode={viewMode}
+                onFavorite={handleFavorite}
+                onAddToCart={handleAddToCart}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

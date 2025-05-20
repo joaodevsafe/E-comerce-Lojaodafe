@@ -1,90 +1,110 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Link, useNavigate } from "react-router-dom";
+
+import { Link } from "react-router-dom";
+import { useCart } from "@/hooks/useCart";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import DiscountCoupon from "@/components/cart/DiscountCoupon";
-import PaymentMethods from "@/components/cart/PaymentMethods";
 import EmptyCart from "@/components/cart/EmptyCart";
-import { useCart } from "@/hooks/useCart";
+import { Button } from "@/components/ui/button";
+import { ShoppingBag, ArrowLeft } from "lucide-react";
 
 const Cart = () => {
-  const navigate = useNavigate();
   const { 
     cartItems, 
     isLoading, 
     handleRemoveItem, 
-    handleQuantityChange,
-    subtotal,
+    handleQuantityChange, 
+    subtotal, 
     shipping,
     total,
     formatPrice
   } = useCart();
-
-  const handleCheckout = () => {
-    navigate('/checkout');
-  };
-
+  
   const handleApplyCoupon = (code: string) => {
-    // This functionality is not implemented yet, but keeping the structure
-    console.log("Applying coupon:", code);
+    console.log("Coupon applied:", code);
+    // Implementation would go here
   };
+  
+  const handleCheckout = () => {
+    // Navigation is handled by the link to /checkout
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return <EmptyCart />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-6">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Carrinho de Compras</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Carrinho</h1>
+          <Link to="/produtos" className="text-blue-600 hover:text-blue-800 text-sm flex items-center">
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Continuar Comprando
+          </Link>
+        </div>
         
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-          </div>
-        ) : cartItems.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2">
-              <Card>
-                <CardContent className="p-6">
-                  {cartItems.map((item, index) => (
-                    <CartItem
-                      key={item.id}
-                      item={item}
-                      formatPrice={formatPrice}
-                      onRemove={handleRemoveItem}
-                      onQuantityChange={handleQuantityChange}
-                      isLast={index === cartItems.length - 1}
-                    />
-                  ))}
-                </CardContent>
-              </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold mb-6">
+                Seus Itens ({cartItems.length})
+              </h2>
               
-              <div className="mt-6">
-                <Link to="/produtos">
-                  <Button variant="outline">
-                    ← Continuar Comprando
-                  </Button>
-                </Link>
+              <div className="space-y-6">
+                {cartItems.map((item, index) => (
+                  <CartItem 
+                    key={item.id}
+                    item={item}
+                    formatPrice={formatPrice}
+                    onRemove={handleRemoveItem}
+                    onQuantityChange={handleQuantityChange}
+                    isLast={index === cartItems.length - 1}
+                  />
+                ))}
               </div>
             </div>
             
-            {/* Order Summary and Additional Components */}
-            <div>
-              <CartSummary
-                itemCount={cartItems.length}
-                subtotal={subtotal}
-                shipping={shipping}
-                total={total}
-                formatPrice={formatPrice}
-                onCheckout={handleCheckout}
-              />
-              
+            {/* Coupon Section */}
+            <div className="mt-6">
               <DiscountCoupon onApply={handleApplyCoupon} />
-              <PaymentMethods />
             </div>
           </div>
-        ) : (
-          <EmptyCart />
-        )}
+          
+          {/* Order Summary */}
+          <div>
+            <CartSummary 
+              itemCount={cartItems.length}
+              subtotal={subtotal}
+              shipping={shipping}
+              total={total}
+              formatPrice={formatPrice}
+              onCheckout={handleCheckout}
+            />
+            
+            <div className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-100">
+              <p className="text-sm text-blue-800 flex items-center">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Os itens em seu carrinho não estão reservados.
+              </p>
+            </div>
+            
+            <div className="mt-4">
+              <Link to="/checkout">
+                <Button className="w-full">Finalizar Compra</Button>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

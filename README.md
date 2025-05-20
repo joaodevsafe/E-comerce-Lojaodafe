@@ -1,73 +1,105 @@
-# Welcome to your Lovable project
 
-## Project info
+# LOJÃO DA FÉ - E-commerce Project
 
-**URL**: https://lovable.dev/projects/c6e30f78-5dc7-471e-9015-6306be3af32a
+## Overview
 
-## How can I edit this code?
+This is a complete e-commerce application with product catalog, shopping cart, checkout flow, and order management capabilities. The project consists of a React frontend and a Node.js backend with MySQL database.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React, TypeScript, Tailwind CSS, TanStack Query, Shadcn/UI
+- **Backend**: Node.js, Express
+- **Database**: MySQL
+- **Authentication**: Local + Google OAuth
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c6e30f78-5dc7-471e-9015-6306be3af32a) and start prompting.
+## Project Setup Guide
 
-Changes made via Lovable will be committed automatically to this repo.
+### 1. Set Up Database
 
-**Use your preferred IDE**
+1. Install MySQL if not already installed
+2. Create a database and import the schema:
+   ```bash
+   mysql -u root -p < backend/setup.sql
+   ```
+   (or use MySQL Workbench to import the SQL file)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 2. Configure Backend Environment
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
 
-Follow these steps:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. Configure environment variables in `.env` file:
+   ```
+   PORT=5000
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=your_mysql_password
+   DB_NAME=lojaodafe
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+4. Start the backend server:
+   ```bash
+   npm start
+   ```
+   The API should be running on http://localhost:5000
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 3. Configure Frontend
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+1. From the root directory, install dependencies:
+   ```bash
+   npm install
+   ```
 
-**Edit a file directly in GitHub**
+2. Create a `.env` file in the root directory:
+   ```
+   VITE_API_URL=http://localhost:5000/api
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+3. Start the frontend development server:
+   ```bash
+   npm run dev
+   ```
+   The application should be running on http://localhost:5173
 
-**Use GitHub Codespaces**
+## Features to Complete
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Critical Path Features
 
-## What technologies are used for this project?
+- [ ] Add real product images to replace placeholders
+- [ ] Implement authentication system fully
+- [ ] Complete checkout flow with payment integration
+- [ ] Add admin panel for order management
 
-This project is built with:
+### Nice-to-Have Features
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+- [ ] Implement coupon/discount system
+- [ ] Add user reviews and ratings
+- [ ] Create wishlist functionality
+- [ ] Implement product search with filters
 
-## How can I deploy this project?
+## Deployment Guide
 
-Simply open [Lovable](https://lovable.dev/projects/c6e30f78-5dc7-471e-9015-6306be3af32a) and click on Share -> Publish.
+### Building for Production
 
-## Can I connect a custom domain to my Lovable project?
+1. Build the frontend:
+   ```bash
+   npm run build
+   ```
+   This will create a `dist` directory with optimized production files
 
-Yes, you can!
+2. Deploy the backend to your hosting provider (Heroku, DigitalOcean, AWS, etc.)
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+3. Set up a production MySQL database
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+4. Configure environment variables on your hosting platform
+
+## Support
+
+For any questions or issues, please contact the project maintainer.
