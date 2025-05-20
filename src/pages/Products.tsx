@@ -1,14 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { ShoppingBag, Heart, Filter, Grid, List } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import ProductFilters from "@/components/products/ProductFilters";
+import ProductViewOptions from "@/components/products/ProductViewOptions";
+import ProductsList from "@/components/products/ProductsList";
 
 const Products = () => {
   const { toast } = useToast();
@@ -147,9 +143,6 @@ const Products = () => {
     // Implement actual filtering logic here
   };
 
-  const categoryOptions = ["Feminino", "Masculino", "Infantil", "Acessórios"];
-  const sizeOptions = ["PP", "P", "M", "G", "GG", "XG", "XXG", "Plus"];
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -164,159 +157,30 @@ const Products = () => {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filtros - Lado Esquerdo */}
           <div className="md:w-1/4">
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Filtros</h3>
-                <Filter className="h-5 w-5 text-gray-500" />
-              </div>
-              <Separator className="mb-4" />
-
-              {/* Categoria */}
-              <div className="mb-6">
-                <h4 className="font-medium mb-3">Categorias</h4>
-                <div className="space-y-2">
-                  {categoryOptions.map(category => (
-                    <div key={category} className="flex items-center gap-2">
-                      <Checkbox 
-                        id={category.toLowerCase()} 
-                        checked={selectedCategories.includes(category)}
-                        onCheckedChange={() => handleCategoryChange(category)} 
-                      />
-                      <Label htmlFor={category.toLowerCase()}>{category}</Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Preço */}
-              <div className="mb-6">
-                <h4 className="font-medium mb-3">Preço</h4>
-                <div className="flex items-center gap-2 mb-2">
-                  <Input 
-                    type="number" 
-                    placeholder="Mín" 
-                    className="w-1/2" 
-                    value={priceRange.min}
-                    onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                  />
-                  <span>a</span>
-                  <Input 
-                    type="number" 
-                    placeholder="Máx" 
-                    className="w-1/2" 
-                    value={priceRange.max}
-                    onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                  />
-                </div>
-              </div>
-              
-              {/* Tamanho */}
-              <div className="mb-6">
-                <h4 className="font-medium mb-3">Tamanho</h4>
-                <div className="grid grid-cols-4 gap-2">
-                  {sizeOptions.map((size) => (
-                    <Button
-                      key={size}
-                      variant={selectedSizes.includes(size) ? "default" : "outline"}
-                      className="w-full text-center"
-                      size="sm"
-                      onClick={() => handleSizeSelect(size)}
-                    >
-                      {size}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              <Button className="w-full" onClick={handleApplyFilters}>Aplicar Filtros</Button>
-            </div>
+            <ProductFilters 
+              selectedCategories={selectedCategories}
+              onCategoryChange={handleCategoryChange}
+              priceRange={priceRange}
+              onPriceRangeChange={setPriceRange}
+              selectedSizes={selectedSizes}
+              onSizeSelect={handleSizeSelect}
+              onApplyFilters={handleApplyFilters}
+            />
           </div>
 
           {/* Lista de Produtos - Lado Direito */}
           <div className="md:w-3/4">
-            {/* Ordenação e Visualização */}
-            <div className="bg-white rounded-lg shadow p-4 mb-6 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600">Visualização:</span>
-                <Button
-                  variant={viewMode === "grid" ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => setViewMode("grid")}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="icon"
-                  onClick={() => setViewMode("list")}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-600">Ordenar por:</span>
-                <select className="border rounded-md px-2 py-1 text-sm">
-                  <option>Mais populares</option>
-                  <option>Maior preço</option>
-                  <option>Menor preço</option>
-                  <option>Mais recentes</option>
-                </select>
-              </div>
-            </div>
+            <ProductViewOptions 
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+            />
 
-            {/* Grid de Produtos */}
-            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-6"}>
-              {filteredProducts.map((product) => (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                  {viewMode === "grid" ? (
-                    <>
-                      <CardHeader>
-                        <div className="aspect-square bg-gray-100 rounded-md mb-4 flex items-center justify-center">
-                          <ShoppingBag className="h-16 w-16 text-gray-400" />
-                        </div>
-                        <CardTitle className="line-clamp-1">{product.name}</CardTitle>
-                        <CardDescription>{product.price}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="line-clamp-2">{product.description}</p>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <Button onClick={handleAddToCart}>Comprar</Button>
-                        <Button variant="ghost" size="icon" onClick={handleFavorite}>
-                          <Heart className="h-5 w-5" />
-                        </Button>
-                      </CardFooter>
-                    </>
-                  ) : (
-                    <div className="flex">
-                      <div className="w-1/4">
-                        <div className="aspect-square bg-gray-100 rounded-md flex items-center justify-center m-4">
-                          <ShoppingBag className="h-16 w-16 text-gray-400" />
-                        </div>
-                      </div>
-                      <div className="w-3/4 p-4">
-                        <h3 className="text-xl font-semibold mb-2">{product.name}</h3>
-                        <p className="text-gray-600 mb-2">{product.price}</p>
-                        <p className="text-sm mb-4">{product.description}</p>
-                        <div className="flex justify-between items-center">
-                          <Button onClick={handleAddToCart}>Comprar</Button>
-                          <Button variant="ghost" size="icon" onClick={handleFavorite}>
-                            <Heart className="h-5 w-5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </Card>
-              ))}
-            </div>
-
-            {/* No products found message */}
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-lg text-gray-500">Nenhum produto encontrado com os filtros selecionados.</p>
-              </div>
-            )}
+            <ProductsList 
+              products={filteredProducts}
+              viewMode={viewMode}
+              onAddToCart={handleAddToCart}
+              onFavorite={handleFavorite}
+            />
           </div>
         </div>
       </div>
