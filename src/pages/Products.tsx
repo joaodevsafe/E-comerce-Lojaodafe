@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,66 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingBag, Heart, Filter, Grid, List } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "react-router-dom";
 
 const Products = () => {
   const { toast } = useToast();
+  const location = useLocation();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: "", max: "" });
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+
+  // Parse URL parameters on component mount
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    
+    // Parse categories from URL
+    const categoriesParam = searchParams.get('categories');
+    if (categoriesParam) {
+      const categories = categoriesParam.split(',');
+      setSelectedCategories(categories);
+    }
+    
+    // Parse price range from URL
+    const minPrice = searchParams.get('minPrice');
+    const maxPrice = searchParams.get('maxPrice');
+    if (minPrice || maxPrice) {
+      setPriceRange({
+        min: minPrice || "",
+        max: maxPrice || ""
+      });
+    }
+    
+    // Parse sizes from URL
+    const sizesParam = searchParams.get('sizes');
+    if (sizesParam) {
+      const sizes = sizesParam.split(',');
+      setSelectedSizes(sizes);
+    }
+  }, [location.search]);
+
+  // Handle category selection
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        return prev.filter(c => c !== category);
+      } else {
+        return [...prev, category];
+      }
+    });
+  };
+
+  // Handle size selection
+  const handleSizeSelect = (size: string) => {
+    setSelectedSizes(prev => {
+      if (prev.includes(size)) {
+        return prev.filter(s => s !== size);
+      } else {
+        return [...prev, size];
+      }
+    });
+  };
 
   // Produtos de exemplo
   const products = [
@@ -59,6 +115,16 @@ const Products = () => {
     }
   ];
 
+  // Filter products based on selected filters
+  const filteredProducts = products.filter(product => {
+    // Filter by category
+    if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
+      return false;
+    }
+    
+    return true;
+  });
+
   const handleAddToCart = () => {
     toast({
       title: "Produto adicionado ao carrinho!",
@@ -72,6 +138,17 @@ const Products = () => {
       description: "Você pode visualizar seus favoritos em sua conta."
     });
   };
+
+  const handleApplyFilters = () => {
+    toast({
+      title: "Filtros aplicados",
+      description: "Os produtos foram filtrados conforme sua seleção."
+    });
+    // Implement actual filtering logic here
+  };
+
+  const categoryOptions = ["Feminino", "Masculino", "Infantil", "Acessórios"];
+  const sizeOptions = ["PP", "P", "M", "G", "GG", "XG", "XXG", "Plus"];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -98,22 +175,16 @@ const Products = () => {
               <div className="mb-6">
                 <h4 className="font-medium mb-3">Categorias</h4>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="feminino" />
-                    <Label htmlFor="feminino">Feminino</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="masculino" />
-                    <Label htmlFor="masculino">Masculino</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="infantil" />
-                    <Label htmlFor="infantil">Infantil</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="acessorios" />
-                    <Label htmlFor="acessorios">Acessórios</Label>
-                  </div>
+                  {categoryOptions.map(category => (
+                    <div key={category} className="flex items-center gap-2">
+                      <Checkbox 
+                        id={category.toLowerCase()} 
+                        checked={selectedCategories.includes(category)}
+                        onCheckedChange={() => handleCategoryChange(category)} 
+                      />
+                      <Label htmlFor={category.toLowerCase()}>{category}</Label>
+                    </div>
+                  ))}
                 </div>
               </div>
               
@@ -125,12 +196,16 @@ const Products = () => {
                     type="number" 
                     placeholder="Mín" 
                     className="w-1/2" 
+                    value={priceRange.min}
+                    onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
                   />
                   <span>a</span>
                   <Input 
                     type="number" 
                     placeholder="Máx" 
                     className="w-1/2" 
+                    value={priceRange.max}
+                    onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
                   />
                 </div>
               </div>
@@ -139,12 +214,13 @@ const Products = () => {
               <div className="mb-6">
                 <h4 className="font-medium mb-3">Tamanho</h4>
                 <div className="grid grid-cols-4 gap-2">
-                  {["PP", "P", "M", "G", "GG", "XG", "XXG", "Plus"].map((size) => (
+                  {sizeOptions.map((size) => (
                     <Button
                       key={size}
-                      variant="outline"
+                      variant={selectedSizes.includes(size) ? "default" : "outline"}
                       className="w-full text-center"
                       size="sm"
+                      onClick={() => handleSizeSelect(size)}
                     >
                       {size}
                     </Button>
@@ -152,7 +228,7 @@ const Products = () => {
                 </div>
               </div>
               
-              <Button className="w-full">Aplicar Filtros</Button>
+              <Button className="w-full" onClick={handleApplyFilters}>Aplicar Filtros</Button>
             </div>
           </div>
 
@@ -190,7 +266,7 @@ const Products = () => {
 
             {/* Grid de Produtos */}
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-6"}>
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <Card key={product.id} className="hover:shadow-lg transition-shadow">
                   {viewMode === "grid" ? (
                     <>
@@ -234,6 +310,13 @@ const Products = () => {
                 </Card>
               ))}
             </div>
+
+            {/* No products found message */}
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-lg text-gray-500">Nenhum produto encontrado com os filtros selecionados.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

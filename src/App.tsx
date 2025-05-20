@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ContactProvider } from "@/contexts/ContactContext";
 import { BankDetailsProvider } from "@/contexts/BankDetailsContext";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -28,35 +29,37 @@ const App = () => (
       <AuthProvider>
         <ContactProvider>
           <BankDetailsProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <div className="flex-grow">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/produtos" element={<Products />} />
-                    <Route path="/produto/:id" element={<ProductDetail />} />
-                    <Route path="/carrinho" element={<Cart />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/pedido-confirmado/:orderId" element={<OrderConfirmation />} />
-                    <Route path="/admin" element={
-                      <ProtectedRoute requiresAdmin>
-                        <Admin />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/usuarios" element={
-                      <ProtectedRoute requiresAdmin>
-                        <AdminUsers />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+            <NavigationProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <div className="flex flex-col min-h-screen">
+                  <Navbar />
+                  <div className="flex-grow">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/produtos" element={<Products />} />
+                      <Route path="/produto/:id" element={<ProductDetail />} />
+                      <Route path="/carrinho" element={<Cart />} />
+                      <Route path="/checkout" element={<Checkout />} />
+                      <Route path="/pedido-confirmado/:orderId" element={<OrderConfirmation />} />
+                      <Route path="/admin" element={
+                        <ProtectedRoute requiresAdmin>
+                          <Admin />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="/admin/usuarios" element={
+                        <ProtectedRoute requiresAdmin>
+                          <AdminUsers />
+                        </ProtectedRoute>
+                      } />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </div>
+                  <Footer />
                 </div>
-                <Footer />
-              </div>
-            </BrowserRouter>
+              </BrowserRouter>
+            </NavigationProvider>
           </BankDetailsProvider>
         </ContactProvider>
       </AuthProvider>

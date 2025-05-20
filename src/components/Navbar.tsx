@@ -1,10 +1,11 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ShoppingBag, Search, Menu, X, Settings } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigation } from "@/contexts/NavigationContext";
 import LoginDialog from "./LoginDialog";
 import DonationQRCode from "./DonationQRCode";
 import UserMenu from "./UserMenu";
@@ -12,9 +13,16 @@ import UserMenu from "./UserMenu";
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAuthenticated, isAdmin } = useAuth();
+  const navigate = useNavigate();
+  const { getCategoryUrl } = useNavigation();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleCategoryClick = (category: "women" | "men" | "kids" | "accessories") => {
+    navigate(getCategoryUrl(category));
+    setIsMenuOpen(false);
   };
 
   return (
@@ -32,10 +40,30 @@ const Navbar = () => {
           <div className="hidden md:block ml-4">
             <div className="flex items-center space-x-8">
               <Link to="/" className="text-gray-700 hover:text-gray-900">Início</Link>
-              <Link to="/produtos" className="text-gray-700 hover:text-gray-900">Feminino</Link>
-              <Link to="/produtos" className="text-gray-700 hover:text-gray-900">Masculino</Link>
-              <Link to="/produtos" className="text-gray-700 hover:text-gray-900">Infantil</Link>
-              <Link to="/produtos" className="text-gray-700 hover:text-gray-900">Acessórios</Link>
+              <button 
+                onClick={() => handleCategoryClick("women")} 
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Feminino
+              </button>
+              <button 
+                onClick={() => handleCategoryClick("men")} 
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Masculino
+              </button>
+              <button 
+                onClick={() => handleCategoryClick("kids")} 
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Infantil
+              </button>
+              <button 
+                onClick={() => handleCategoryClick("accessories")} 
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Acessórios
+              </button>
             </div>
           </div>
           
@@ -124,34 +152,30 @@ const Navbar = () => {
             >
               Início
             </Link>
-            <Link 
-              to="/produtos" 
-              className="block py-2 text-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            <button 
+              className="block py-2 text-gray-700 w-full text-left"
+              onClick={() => handleCategoryClick("women")}
             >
               Feminino
-            </Link>
-            <Link 
-              to="/produtos" 
-              className="block py-2 text-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button 
+              className="block py-2 text-gray-700 w-full text-left"
+              onClick={() => handleCategoryClick("men")}
             >
               Masculino
-            </Link>
-            <Link 
-              to="/produtos" 
-              className="block py-2 text-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button 
+              className="block py-2 text-gray-700 w-full text-left"
+              onClick={() => handleCategoryClick("kids")}
             >
               Infantil
-            </Link>
-            <Link 
-              to="/produtos" 
-              className="block py-2 text-gray-700"
-              onClick={() => setIsMenuOpen(false)}
+            </button>
+            <button 
+              className="block py-2 text-gray-700 w-full text-left"
+              onClick={() => handleCategoryClick("accessories")}
             >
               Acessórios
-            </Link>
+            </button>
             <Link 
               to="/favoritos" 
               className="block py-2 text-gray-700"

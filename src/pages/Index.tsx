@@ -3,19 +3,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShoppingBag, Star, Calendar, Heart, Truck, Phone, Mail, Instagram, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useContactInfo } from "@/contexts/ContactContext";
+import { useNavigation } from "@/contexts/NavigationContext";
 import { createWhatsAppLink } from "@/utils/whatsappLink";
 
 const Index = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { contactInfo } = useContactInfo();
+  const { getNavigationUrl, getCategoryUrl } = useNavigation();
 
-  const handleExplore = () => {
-    toast({
-      title: "Obrigado pelo interesse!",
-      description: "Em breve teremos mais produtos disponíveis."
-    });
+  const handleExploreNewArrivals = () => {
+    navigate(getNavigationUrl("newArrivals"));
+  };
+
+  const handleExploreCollections = () => {
+    navigate(getNavigationUrl("collections"));
+  };
+
+  const handleCategoryClick = (category: "women" | "men" | "kids" | "accessories") => {
+    navigate(getCategoryUrl(category));
   };
 
   const handleWhatsAppSupport = () => {
@@ -42,10 +50,10 @@ const Index = () => {
         <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
           Descubra as últimas tendências da moda e renove seu guarda-roupa com estilo e qualidade.
         </p>
-        <Button onClick={handleExplore} size="lg" className="mx-2">
+        <Button onClick={handleExploreNewArrivals} size="lg" className="mx-2">
           Ver Novidades
         </Button>
-        <Button variant="outline" size="lg" className="mx-2">
+        <Button variant="outline" size="lg" className="mx-2" onClick={handleExploreCollections}>
           Coleções
         </Button>
       </header>
@@ -59,28 +67,48 @@ const Index = () => {
             <Card className="hover:shadow-lg transition-shadow text-center">
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold mb-2">Feminino</h3>
-                <Button variant="ghost" onClick={handleExplore}>Ver Produtos</Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleCategoryClick("women")}
+                >
+                  Ver Produtos
+                </Button>
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow text-center">
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold mb-2">Masculino</h3>
-                <Button variant="ghost" onClick={handleExplore}>Ver Produtos</Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleCategoryClick("men")}
+                >
+                  Ver Produtos
+                </Button>
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow text-center">
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold mb-2">Infantil</h3>
-                <Button variant="ghost" onClick={handleExplore}>Ver Produtos</Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleCategoryClick("kids")}
+                >
+                  Ver Produtos
+                </Button>
               </CardContent>
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow text-center">
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold mb-2">Acessórios</h3>
-                <Button variant="ghost" onClick={handleExplore}>Ver Produtos</Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => handleCategoryClick("accessories")}
+                >
+                  Ver Produtos
+                </Button>
               </CardContent>
             </Card>
           </div>
@@ -247,10 +275,38 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-3">Categorias</h4>
               <ul>
-                <li className="mb-2"><a href="#" className="hover:text-white">Feminino</a></li>
-                <li className="mb-2"><a href="#" className="hover:text-white">Masculino</a></li>
-                <li className="mb-2"><a href="#" className="hover:text-white">Infantil</a></li>
-                <li className="mb-2"><a href="#" className="hover:text-white">Acessórios</a></li>
+                <li className="mb-2">
+                  <button 
+                    onClick={() => handleCategoryClick("women")} 
+                    className="hover:text-white"
+                  >
+                    Feminino
+                  </button>
+                </li>
+                <li className="mb-2">
+                  <button 
+                    onClick={() => handleCategoryClick("men")} 
+                    className="hover:text-white"
+                  >
+                    Masculino
+                  </button>
+                </li>
+                <li className="mb-2">
+                  <button 
+                    onClick={() => handleCategoryClick("kids")} 
+                    className="hover:text-white"
+                  >
+                    Infantil
+                  </button>
+                </li>
+                <li className="mb-2">
+                  <button 
+                    onClick={() => handleCategoryClick("accessories")} 
+                    className="hover:text-white"
+                  >
+                    Acessórios
+                  </button>
+                </li>
               </ul>
             </div>
             
