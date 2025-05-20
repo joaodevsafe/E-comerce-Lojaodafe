@@ -1,19 +1,26 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { useGoogleLogin } from "@react-oauth/google";
 
 type GoogleAuthButtonProps = {
-  onClick: () => void;
+  onSuccess: (response: any) => void;
+  onError?: () => void;
   disabled?: boolean;
 };
 
-const GoogleAuthButton = ({ onClick, disabled }: GoogleAuthButtonProps) => {
+const GoogleAuthButton = ({ onSuccess, onError, disabled }: GoogleAuthButtonProps) => {
+  const login = useGoogleLogin({
+    onSuccess: onSuccess,
+    onError: onError || (() => {}),
+  });
+
   return (
     <Button 
       type="button" 
       variant="outline" 
       className="w-full"
-      onClick={onClick}
+      onClick={() => login()}
       disabled={disabled}
     >
       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">

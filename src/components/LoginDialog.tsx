@@ -49,10 +49,10 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
     }
   };
   
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (response: any) => {
     setIsLoading(true);
     try {
-      await loginWithGoogle();
+      await loginWithGoogle(response);
       setIsOpen(false);
     } catch (error) {
       console.error("Google login failed:", error);

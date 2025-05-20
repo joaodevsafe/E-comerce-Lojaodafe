@@ -4,6 +4,7 @@ import { AuthContext } from "@/contexts/AuthContext";
 import { User } from "@/types/auth";
 import { useToast } from "@/hooks/use-toast";
 import { getAdminUsers, registerAdmin, removeAdmin } from "@/utils/authUtils";
+import axios from "axios";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -78,21 +79,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = async (tokenResponse: any) => {
     try {
-      // Mock Google login - replace with actual implementation
+      // Get user information from Google using the access token
+      const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: {
+          Authorization: `Bearer ${tokenResponse.access_token}`
+        }
+      });
+      
+      const googleUserInfo = userInfoResponse.data;
+      
+      // Create user from Google profile information
       const googleUser = { 
-        id: Math.random().toString(36).substr(2, 9), 
-        email: "user@gmail.com", 
-        name: "Google User", 
+        id: googleUserInfo.sub || Math.random().toString(36).substr(2, 9), 
+        email: googleUserInfo.email || "user@gmail.com", 
+        name: googleUserInfo.name || "Google User", 
         role: "user" as const 
       };
+      
       setUser(googleUser);
       localStorage.setItem("user", JSON.stringify(googleUser));
+      
       toast({
         title: "Google login successful",
         description: "Welcome to LOJAODAFE",
       });
+      
+      return googleUser;
     } catch (error) {
       console.error("Google login error:", error);
       toast({

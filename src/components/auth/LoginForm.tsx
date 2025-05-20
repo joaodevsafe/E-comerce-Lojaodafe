@@ -12,7 +12,7 @@ type LoginFormProps = {
   setLoginEmail: (value: string) => void;
   setLoginPassword: (value: string) => void;
   handleLogin: (e: React.FormEvent) => void;
-  handleGoogleLogin: () => void;
+  handleGoogleLogin: (response: any) => void;
   isLoading: boolean;
 };
 
@@ -72,7 +72,7 @@ const LoginForm = ({
         </div>
       </div>
       
-      <GoogleAuthButton onClick={handleGoogleLogin} disabled={isLoading} />
+      <GoogleAuthButton onSuccess={handleGoogleLogin} disabled={isLoading} />
     </form>
   );
 };

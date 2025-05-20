@@ -13,7 +13,7 @@ type RegisterFormProps = {
   setRegisterPassword: (value: string) => void;
   setRegisterName: (value: string) => void;
   handleRegister: (e: React.FormEvent) => void;
-  handleGoogleLogin: () => void;
+  handleGoogleLogin: (response: any) => void;
   isLoading: boolean;
 };
 
@@ -86,7 +86,7 @@ const RegisterForm = ({
         </div>
       </div>
       
-      <GoogleAuthButton onClick={handleGoogleLogin} disabled={isLoading} />
+      <GoogleAuthButton onSuccess={handleGoogleLogin} disabled={isLoading} />
     </form>
   );
 };
