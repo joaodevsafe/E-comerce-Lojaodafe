@@ -70,44 +70,50 @@ const Products = () => {
     {
       id: 1,
       name: "Camisa Slim Fit",
-      price: "R$ 129,90",
+      price: 129.90,
       description: "Camisa de algodão com corte slim, ideal para ocasiões formais ou casuais.",
-      category: "Masculino"
+      category: "Masculino",
+      image_url: ""
     },
     {
       id: 2,
       name: "Vestido Floral",
-      price: "R$ 189,90",
+      price: 189.90,
       description: "Vestido leve com estampa floral, perfeito para a primavera e o verão.",
-      category: "Feminino"
+      category: "Feminino",
+      image_url: ""
     },
     {
       id: 3,
       name: "Jeans Premium",
-      price: "R$ 259,90",
+      price: 259.90,
       description: "Jeans de alta qualidade com modelagem moderna e confortável.",
-      category: "Masculino"
+      category: "Masculino",
+      image_url: ""
     },
     {
       id: 4,
       name: "Blusa Básica",
-      price: "R$ 79,90",
+      price: 79.90,
       description: "Blusa de algodão com design básico e versátil.",
-      category: "Feminino"
+      category: "Feminino",
+      image_url: ""
     },
     {
       id: 5,
       name: "Camiseta Estampada",
-      price: "R$ 89,90",
+      price: 89.90,
       description: "Camiseta com estampa exclusiva em algodão premium.",
-      category: "Masculino"
+      category: "Masculino",
+      image_url: ""
     },
     {
       id: 6,
       name: "Vestido Midi",
-      price: "R$ 219,90",
+      price: 219.90,
       description: "Vestido midi em tecido leve e fluido, elegante e confortável.",
-      category: "Feminino"
+      category: "Feminino",
+      image_url: ""
     }
   ];
 
@@ -178,7 +184,6 @@ const Products = () => {
             <ProductsList 
               products={filteredProducts}
               viewMode={viewMode}
-              onAddToCart={handleAddToCart}
               onFavorite={handleFavorite}
             />
           </div>

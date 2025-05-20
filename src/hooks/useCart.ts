@@ -13,11 +13,10 @@ export const useCart = () => {
   const { data: cartItems = [] } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems,
-    onSuccess: () => {
+    onSettled: () => {
       setIsLoading(false);
     },
     onError: (error: any) => {
-      setIsLoading(false);
       console.error('Error fetching cart:', error);
       toast({
         title: "Erro ao carregar o carrinho",
