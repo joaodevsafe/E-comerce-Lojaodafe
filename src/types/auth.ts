@@ -11,7 +11,7 @@ export type AuthContextType = {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
+  loginWithGoogle: (tokenResponse: any) => Promise<any>;
   register: (email: string, password: string, name: string) => Promise<void>;
   registerAdmin: (email: string, password: string, name: string) => User;
   removeAdmin: (id: string) => void;
