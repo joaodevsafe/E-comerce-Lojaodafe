@@ -13,19 +13,17 @@ export const useCart = () => {
   const { data: cartItems = [] } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems,
-    meta: {
-      onSuccess: () => {
-        setIsLoading(false);
-      },
-      onError: (error: any) => {
-        setIsLoading(false);
-        console.error('Error fetching cart:', error);
-        toast({
-          title: "Erro ao carregar o carrinho",
-          description: "Não foi possível carregar os itens do seu carrinho.",
-          variant: "destructive"
-        });
-      }
+    onSuccess: () => {
+      setIsLoading(false);
+    },
+    onError: (error: any) => {
+      setIsLoading(false);
+      console.error('Error fetching cart:', error);
+      toast({
+        title: "Erro ao carregar o carrinho",
+        description: "Não foi possível carregar os itens do seu carrinho.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -44,6 +42,36 @@ export const useCart = () => {
       toast({
         title: "Erro ao remover produto",
         description: "Não foi possível remover o item do carrinho.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle adding items to cart
+  const addItemMutation = useMutation({
+    mutationFn: ({ 
+      productId, 
+      quantity, 
+      size, 
+      color 
+    }: { 
+      productId: number; 
+      quantity: number; 
+      size: string; 
+      color: string 
+    }) => cartService.addItem(productId, quantity, size, color),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      toast({
+        title: "Produto adicionado",
+        description: "O item foi adicionado ao carrinho com sucesso."
+      });
+    },
+    onError: (error) => {
+      console.error('Error adding item:', error);
+      toast({
+        title: "Erro ao adicionar produto",
+        description: "Não foi possível adicionar o item ao carrinho.",
         variant: "destructive"
       });
     }
@@ -70,6 +98,10 @@ export const useCart = () => {
     removeItemMutation.mutate(id);
   };
 
+  const handleAddItem = (productId: number, quantity: number, size: string, color: string) => {
+    addItemMutation.mutate({ productId, quantity, size, color });
+  };
+
   const handleQuantityChange = (id: number, quantity: number) => {
     if (quantity < 1) return;
     updateQuantityMutation.mutate({ id, quantity });
@@ -91,6 +123,7 @@ export const useCart = () => {
     cartItems,
     isLoading,
     handleRemoveItem,
+    handleAddItem,
     handleQuantityChange,
     subtotal,
     shipping,

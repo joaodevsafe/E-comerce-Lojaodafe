@@ -1,20 +1,22 @@
 
 import ProductCard from "./ProductCard";
+import { useCart } from "@/hooks/useCart";
+import { Product } from "@/services/api";
 
 interface ProductsListProps {
-  products: Array<{
-    id: number;
-    name: string;
-    price: string;
-    description: string;
-    category: string;
-  }>;
+  products: Product[];
   viewMode: "grid" | "list";
-  onAddToCart: () => void;
   onFavorite: () => void;
 }
 
-const ProductsList = ({ products, viewMode, onAddToCart, onFavorite }: ProductsListProps) => {
+const ProductsList = ({ products, viewMode, onFavorite }: ProductsListProps) => {
+  const { handleAddItem } = useCart();
+  
+  const handleAddToCart = (productId: number) => {
+    // Default values for size and color, can be improved with actual product variants
+    handleAddItem(productId, 1, "Único", "Padrão");
+  };
+
   if (products.length === 0) {
     return (
       <div className="text-center py-12">
@@ -30,7 +32,7 @@ const ProductsList = ({ products, viewMode, onAddToCart, onFavorite }: ProductsL
           key={product.id}
           product={product}
           viewMode={viewMode}
-          onAddToCart={onAddToCart}
+          onAddToCart={() => handleAddToCart(product.id)}
           onFavorite={onFavorite}
         />
       ))}
