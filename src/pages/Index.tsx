@@ -14,6 +14,14 @@ const Index = () => {
   const { contactInfo } = useContactInfo();
   const { getNavigationUrl, getCategoryUrl } = useNavigation();
 
+  // Add the missing handleExplore function
+  const handleExplore = () => {
+    toast({
+      title: "Função em desenvolvimento",
+      description: "Esta funcionalidade estará disponível em breve."
+    });
+  };
+
   const handleExploreNewArrivals = () => {
     navigate(getNavigationUrl("newArrivals"));
   };
