@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cartService, CartItem } from "@/services/api";
@@ -10,23 +10,26 @@ export const useCart = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch cart items
-  const { data: cartItems = [] } = useQuery({
+  const { data: cartItems = [], error: cartError } = useQuery({
     queryKey: ['cart'],
-    queryFn: cartService.getItems,
-    onSettled: () => {
-      setIsLoading(false);
-    },
-    meta: {
-      onError: (error: any) => {
-        console.error('Error fetching cart:', error);
-        toast({
-          title: "Erro ao carregar o carrinho",
-          description: "Não foi possível carregar os itens do seu carrinho.",
-          variant: "destructive"
-        });
-      }
-    }
+    queryFn: cartService.getItems
   });
+
+  // Handle loading state and errors manually
+  useEffect(() => {
+    if (cartItems || cartError) {
+      setIsLoading(false);
+    }
+    
+    if (cartError) {
+      console.error('Error fetching cart:', cartError);
+      toast({
+        title: "Erro ao carregar o carrinho",
+        description: "Não foi possível carregar os itens do seu carrinho.",
+        variant: "destructive"
+      });
+    }
+  }, [cartItems, cartError, toast]);
 
   // Handle removing items from cart
   const removeItemMutation = useMutation({
