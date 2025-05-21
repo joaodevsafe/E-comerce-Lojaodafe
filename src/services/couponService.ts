@@ -22,7 +22,11 @@ export const couponService = {
       return [];
     }
     
-    return data || [];
+    // Cast the discount_type from string to CouponDiscountType
+    return (data || []).map(item => ({
+      ...item,
+      discount_type: item.discount_type as CouponDiscountType
+    }));
   },
 
   // Get all coupons (admin only due to RLS policy)
@@ -37,7 +41,11 @@ export const couponService = {
       return [];
     }
     
-    return data || [];
+    // Cast the discount_type from string to CouponDiscountType
+    return (data || []).map(item => ({
+      ...item,
+      discount_type: item.discount_type as CouponDiscountType
+    }));
   },
 
   // Create or update a coupon (admin only due to RLS policy)
@@ -65,7 +73,11 @@ export const couponService = {
         return null;
       }
       
-      return data;
+      // Cast the discount_type
+      return {
+        ...data,
+        discount_type: data.discount_type as CouponDiscountType
+      };
     } else {
       // Create new coupon
       const { data, error } = await supabase
@@ -88,7 +100,11 @@ export const couponService = {
         return null;
       }
       
-      return data;
+      // Cast the discount_type
+      return {
+        ...data,
+        discount_type: data.discount_type as CouponDiscountType
+      };
     }
   },
 
@@ -166,7 +182,9 @@ export const couponService = {
     
     // Calculate discount
     let discount = 0;
-    if (coupon.discount_type === 'percentage') {
+    const discountType = coupon.discount_type as CouponDiscountType;
+    
+    if (discountType === 'percentage') {
       discount = (subtotal * coupon.discount_value) / 100;
     } else {
       discount = coupon.discount_value;
@@ -182,11 +200,15 @@ export const couponService = {
     
     return {
       valid: true,
-      message: coupon.discount_type === 'percentage'
+      message: discountType === 'percentage'
         ? `Cupom aplicado! ${coupon.discount_value}% de desconto.`
         : `Cupom aplicado! ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(coupon.discount_value)} de desconto.`,
       discount,
-      coupon
+      // Cast the returned coupon object to match the Coupon type
+      coupon: {
+        ...coupon,
+        discount_type: coupon.discount_type as CouponDiscountType
+      }
     };
   }
 };
