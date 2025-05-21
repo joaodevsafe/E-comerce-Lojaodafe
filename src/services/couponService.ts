@@ -207,7 +207,7 @@ export const couponService = {
       // Cast the returned coupon object to match the Coupon type
       coupon: {
         ...coupon,
-        discount_type: coupon.discount_type as CouponDiscountType
+        discount_type: discountType
       }
     };
   }
