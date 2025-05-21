@@ -25,52 +25,55 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Get Google Client ID from environment variables
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
-const queryClient = new QueryClient();
+const App = () => {
+  // Create a new QueryClient instance inside the component
+  const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-        <AuthProvider>
-          <ContactProvider>
-            <BankDetailsProvider>
-              <NavigationProvider>
-                <Toaster />
-                <Sonner />
-                <BrowserRouter>
-                  <div className="flex flex-col min-h-screen">
-                    <Navbar />
-                    <div className="flex-grow">
-                      <Routes>
-                        <Route path="/" element={<Index />} />
-                        <Route path="/produtos" element={<Products />} />
-                        <Route path="/produto/:id" element={<ProductDetail />} />
-                        <Route path="/carrinho" element={<Cart />} />
-                        <Route path="/checkout" element={<Checkout />} />
-                        <Route path="/pedido-confirmado/:orderId" element={<OrderConfirmation />} />
-                        <Route path="/admin" element={
-                          <ProtectedRoute requiresAdmin>
-                            <Admin />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="/admin/usuarios" element={
-                          <ProtectedRoute requiresAdmin>
-                            <AdminUsers />
-                          </ProtectedRoute>
-                        } />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+          <AuthProvider>
+            <ContactProvider>
+              <BankDetailsProvider>
+                <NavigationProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <div className="flex flex-col min-h-screen">
+                      <Navbar />
+                      <div className="flex-grow">
+                        <Routes>
+                          <Route path="/" element={<Index />} />
+                          <Route path="/produtos" element={<Products />} />
+                          <Route path="/produto/:id" element={<ProductDetail />} />
+                          <Route path="/carrinho" element={<Cart />} />
+                          <Route path="/checkout" element={<Checkout />} />
+                          <Route path="/pedido-confirmado/:orderId" element={<OrderConfirmation />} />
+                          <Route path="/admin" element={
+                            <ProtectedRoute requiresAdmin>
+                              <Admin />
+                            </ProtectedRoute>
+                          } />
+                          <Route path="/admin/usuarios" element={
+                            <ProtectedRoute requiresAdmin>
+                              <AdminUsers />
+                            </ProtectedRoute>
+                          } />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </div>
+                      <Footer />
                     </div>
-                    <Footer />
-                  </div>
-                </BrowserRouter>
-              </NavigationProvider>
-            </BankDetailsProvider>
-          </ContactProvider>
-        </AuthProvider>
-      </GoogleOAuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+                  </BrowserRouter>
+                </NavigationProvider>
+              </BankDetailsProvider>
+            </ContactProvider>
+          </AuthProvider>
+        </GoogleOAuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
