@@ -7,6 +7,11 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Use test database if in test environment
+const DB_NAME = process.env.NODE_ENV === 'test' 
+  ? `${process.env.DB_NAME}_test` 
+  : process.env.DB_NAME;
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -16,7 +21,7 @@ const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'lojaodafe',
+  database: DB_NAME || 'lojaodafe',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
@@ -254,6 +259,14 @@ app.get('/api/update-schema', async (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+let server;
+if (process.env.NODE_ENV !== 'test') {
+  server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+} else {
+  server = app.listen(0); // Random port for testing
+  console.log('Server started in test mode');
+}
+
+module.exports = { app, server, pool };
