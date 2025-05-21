@@ -1,6 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { productService, Product } from '@/services/api';
+import { productService } from '@/services/api';
+import { Product } from '@/types';
 import ProductCard from '@/components/products/ProductCard';
 import ProductSearch from '@/components/products/ProductSearch';
 import { Loader2 } from 'lucide-react';

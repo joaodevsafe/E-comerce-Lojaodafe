@@ -43,7 +43,7 @@ const Wishlist = () => {
 
   const handleRemoveFromWishlist = async (productId: string) => {
     try {
-      if (!user) return;
+      if (!user?.id) return;
       
       const result = await wishlistService.removeFromWishlist(productId, user.id);
       
@@ -120,8 +120,8 @@ const Wishlist = () => {
             <EnhancedProductCard 
               key={item.id}
               product={item.products}
+              showRemoveButton={true}
               onRemoveFromWishlist={() => handleRemoveFromWishlist(item.product_id)}
-              showRemoveButton
             />
           ))}
         </div>

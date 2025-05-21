@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { Product, CartItem, WishlistItem, ProductReview, ContactForm, BankDetails, Coupon } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
@@ -448,9 +447,7 @@ export const wishlistService = {
   }
 };
 
-// ======================
-// Review related services
-// ======================
+// Update reviewService to align with the function signatures used in the components
 export const reviewService = {
     getProductReviews: async (productId: string) => {
         try {

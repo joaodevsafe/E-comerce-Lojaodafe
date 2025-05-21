@@ -1,8 +1,7 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, ShoppingBag } from "lucide-react";
-import { Product } from "@/services/api";
+import { Product } from "@/types";
 
 interface ProductCardProps {
   product: Product;

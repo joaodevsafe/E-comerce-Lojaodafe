@@ -9,7 +9,8 @@ import { Loader2, Send, Edit, Trash } from "lucide-react";
 import ProductRating from "./ProductRating";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { reviewService, ProductReview } from "@/services/api";
+import { reviewService } from "@/services/api";
+import { ProductReview } from "@/types";
 
 interface ProductReviewsProps {
   productId: string;
@@ -32,10 +33,10 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   }, [productId]);
   
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user?.id) {
       fetchUserReview();
     }
-  }, [isAuthenticated, productId]);
+  }, [isAuthenticated, productId, user?.id]);
   
   const fetchReviews = async () => {
     setIsLoadingReviews(true);
@@ -55,8 +56,10 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   };
   
   const fetchUserReview = async () => {
+    if (!user?.id) return;
+    
     try {
-      const review = await reviewService.getUserReview(productId);
+      const review = await reviewService.getUserReview(productId, user.id);
       if (review) {
         setUserReview(review);
         setRating(review.rating);
@@ -70,6 +73,14 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   const handleSubmitReview = async () => {
     if (!isAuthenticated) {
       openAuthDialog();
+      return;
+    }
+    
+    if (!user?.id) {
+      toast({
+        description: "Você precisa estar logado para avaliar",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -89,7 +100,8 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
         success = await reviewService.updateReview(
           userReview.id,
           rating,
-          reviewText || null
+          reviewText || '',
+          user.id
         );
         if (success) {
           setUserReview({
@@ -106,7 +118,8 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
         success = await reviewService.addReview(
           productId,
           rating,
-          reviewText || null
+          reviewText || '',
+          user.id
         );
         if (success) {
           await fetchReviews();
@@ -137,11 +150,11 @@ const ProductReviews = ({ productId }: ProductReviewsProps) => {
   };
   
   const handleDeleteReview = async () => {
-    if (!userReview) return;
+    if (!userReview || !user?.id) return;
     
     setIsSubmitting(true);
     try {
-      const success = await reviewService.deleteReview(userReview.id);
+      const success = await reviewService.deleteReview(userReview.id, user.id);
       if (success) {
         setUserReview(null);
         setRating(0);

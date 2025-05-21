@@ -20,7 +20,7 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && user?.id) {
       checkWishlistStatus();
     } else {
       setIsLoading(false);
@@ -28,9 +28,11 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
   }, [productId, isAuthenticated, user]);
 
   const checkWishlistStatus = async () => {
+    if (!user?.id) return;
+    
     setIsLoading(true);
     try {
-      const result = await wishlistService.isInWishlist(productId, user?.id);
+      const result = await wishlistService.isInWishlist(productId, user.id);
       setIsInWishlist(result);
     } catch (error) {
       console.error("Error checking wishlist status:", error);
@@ -44,13 +46,22 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
       openAuthDialog();
       return;
     }
+    
+    if (!user?.id) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar logado para adicionar à lista de desejos",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
       let result;
       
       if (isInWishlist) {
-        result = await wishlistService.removeFromWishlist(productId, user?.id);
+        result = await wishlistService.removeFromWishlist(productId, user.id);
         if (result.success) {
           setIsInWishlist(false);
           toast({
@@ -58,7 +69,7 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
           });
         }
       } else {
-        result = await wishlistService.addToWishlist(productId, user?.id);
+        result = await wishlistService.addToWishlist(productId, user.id);
         if (result.success) {
           setIsInWishlist(true);
           toast({

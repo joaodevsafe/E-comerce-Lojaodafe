@@ -1,6 +1,5 @@
-
 import { Link } from "react-router-dom";
-import { Product } from "@/services/api";
+import { Product } from "@/types";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
@@ -12,9 +11,11 @@ import ProductRating from "./ProductRating";
 interface ProductCardProps {
   product: Product;
   showRating?: boolean;
+  showRemoveButton?: boolean;
+  onRemoveFromWishlist?: () => void;
 }
 
-const EnhancedProductCard = ({ product, showRating = true }: ProductCardProps) => {
+const EnhancedProductCard = ({ product, showRating = true, showRemoveButton = false, onRemoveFromWishlist }: ProductCardProps) => {
   const { handleAddItem } = useCart();
   const { toast } = useToast();
   
@@ -46,7 +47,18 @@ const EnhancedProductCard = ({ product, showRating = true }: ProductCardProps) =
           />
         </Link>
         <div className="absolute top-3 right-3">
-          <WishlistButton productId={product.id.toString()} />
+          {showRemoveButton ? (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onRemoveFromWishlist}
+              className="text-red-500 bg-white"
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+          ) : (
+            <WishlistButton productId={product.id.toString()} />
+          )}
         </div>
       </div>
       

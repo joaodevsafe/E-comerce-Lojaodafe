@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Product } from "@/services/api";
+import { Product } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Heart, ShoppingBag } from "lucide-react";
