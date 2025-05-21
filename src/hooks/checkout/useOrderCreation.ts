@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { orderService } from "@/services/api";
 import type { AddressFormValues } from "./useAddressValidation";
 import type { CartItem } from "@/services/api";
+import { PaymentMethodType } from "./useCheckout";
 
 export const useOrderCreation = (cartItems: CartItem[]) => {
   const { toast } = useToast();
@@ -15,7 +16,7 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
 
   // Place order mutation
   const placeOrderMutation = useMutation({
-    mutationFn: (data: { shippingAddress: AddressFormValues, paymentMethod: string }) => {
+    mutationFn: (data: { shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType }) => {
       return orderService.createOrder(
         cartItems,
         data.shippingAddress,
@@ -37,7 +38,7 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
     }
   });
 
-  const createOrder = (shippingAddress: AddressFormValues, paymentMethod: string) => {
+  const createOrder = (shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType) => {
     if (cartItems.length === 0) {
       toast({
         title: "Carrinho vazio",
@@ -45,6 +46,12 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
         variant: "destructive"
       });
       return;
+    }
+    
+    // Calculate discounts based on payment method
+    let discountPercent = 0;
+    if (paymentMethod === "pix") {
+      discountPercent = 5; // 5% discount for Pix
     }
     
     setIsProcessing(true);

@@ -2,25 +2,19 @@
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, Truck, Package, Clock, ArrowLeft, CreditCard } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { orderService } from "@/services/api";
-import { useBankDetails } from "@/contexts/BankDetailsContext";
-import { useContactInfo } from "@/contexts/ContactContext";
-import { createWhatsAppLink } from "@/utils/whatsappLink";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { CheckCircle, ShoppingBag, ArrowLeft, CreditCard, Building } from "lucide-react";
 
 const OrderConfirmation = () => {
-  const { orderId } = useParams<{ orderId: string }>();
-  const { bankDetails } = useBankDetails();
-  const { contactInfo } = useContactInfo();
+  const { orderId } = useParams();
   
-  // Fetch order details
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderId],
     queryFn: () => orderService.getOrderById(Number(orderId)),
-    enabled: !!orderId,
+    enabled: !!orderId
   });
 
   useEffect(() => {
@@ -29,40 +23,117 @@ const OrderConfirmation = () => {
   }, []);
 
   const formatPrice = (price: number) => {
-    return price.toLocaleString('pt-BR', {
+    return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL',
-    });
+      currency: 'BRL'
+    }).format(price);
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(date);
+  const getPaymentInstructions = () => {
+    if (!order) return null;
+    
+    switch(order.payment_method) {
+      case 'credit_card':
+        return (
+          <div className="mt-6 p-4 bg-green-50 border border-green-100 rounded-lg">
+            <p className="text-green-800">
+              Pagamento processado com sucesso via cartão de crédito.
+            </p>
+          </div>
+        );
+      case 'pix':
+        return (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg">
+            <h4 className="font-medium text-blue-800 mb-2">Instruções para pagamento via PIX</h4>
+            <p className="text-blue-700 mb-2">Escaneie o código QR abaixo ou copie a chave PIX:</p>
+            <div className="bg-white p-4 flex items-center justify-center mb-3">
+              <div className="w-40 h-40 bg-gray-200 flex items-center justify-center">
+                [QR Code Placeholder]
+              </div>
+            </div>
+            <div className="bg-gray-100 p-2 rounded mb-2">
+              <p className="text-center font-mono text-sm select-all">
+                abcdef12-3456-7890-abcd-ef1234567890
+              </p>
+            </div>
+            <p className="text-sm text-blue-700">
+              O pagamento será confirmado em até 5 minutos após a transferência.
+              Lembre-se de enviar o valor exato: {formatPrice(order.total)}.
+            </p>
+          </div>
+        );
+      case 'boleto':
+        return (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-100 rounded-lg">
+            <h4 className="font-medium text-yellow-800 mb-2">Boleto Bancário</h4>
+            <p className="text-yellow-700 mb-3">
+              Seu boleto foi gerado com sucesso. Clique no botão abaixo para visualizar e imprimir:
+            </p>
+            <Button className="w-full mb-2">Visualizar Boleto</Button>
+            <p className="text-sm text-yellow-700">
+              O prazo de vencimento é de 3 dias úteis. Após o pagamento, 
+              pode levar até 2 dias úteis para a confirmação.
+            </p>
+          </div>
+        );
+      case 'bank_transfer':
+        return (
+          <div className="mt-6 p-4 bg-purple-50 border border-purple-100 rounded-lg">
+            <h4 className="font-medium text-purple-800 mb-2">Transferência Bancária</h4>
+            <p className="text-purple-700 mb-3">
+              Realize a transferência para a conta abaixo e envie o comprovante:
+            </p>
+            <div className="bg-white p-3 rounded-lg mb-3">
+              <p className="text-sm">
+                <span className="font-medium">Banco:</span> Banco do Brasil<br/>
+                <span className="font-medium">Agência:</span> 1234-5<br/>
+                <span className="font-medium">Conta:</span> 12345-6<br/>
+                <span className="font-medium">CNPJ:</span> 12.345.678/0001-90<br/>
+                <span className="font-medium">Valor:</span> {formatPrice(order.total)}
+              </p>
+            </div>
+            <Button className="w-full mb-2">Enviar Comprovante</Button>
+            <p className="text-sm text-purple-700">
+              Após o envio do comprovante, seu pagamento será confirmado em até 24 horas.
+            </p>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
-  const getWhatsAppLink = () => {
-    const message = `Olá! Gostaria de confirmar o pagamento do meu pedido #${orderId}.`;
-    return createWhatsAppLink(contactInfo.whatsapp, message);
+  const getPaymentIcon = () => {
+    if (!order) return <CreditCard />;
+    
+    switch(order.payment_method) {
+      case 'credit_card':
+        return <CreditCard />;
+      case 'pix':
+        return <div className="font-bold text-sm">PIX</div>;
+      case 'boleto':
+        return <Building />;
+      case 'bank_transfer':
+        return <Building />;
+      default:
+        return <CreditCard />;
+    }
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-3xl font-bold mb-4">Pedido não encontrado</h1>
-          <p className="text-gray-600 mb-6">Não foi possível encontrar informações sobre este pedido.</p>
+          <p className="text-gray-600 mb-6">O pedido que você está procurando não existe.</p>
           <Link to="/">
             <Button>Voltar para a Página Inicial</Button>
           </Link>
@@ -71,298 +142,120 @@ const OrderConfirmation = () => {
     );
   }
 
-  // Calculate delivery estimate (7 business days from now)
-  const deliveryDate = new Date();
-  deliveryDate.setDate(deliveryDate.getDate() + 7);
-
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-6">
       <div className="max-w-4xl mx-auto">
-        {/* Success Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center">
-            <div className="bg-green-100 rounded-full p-4 mb-4">
-              <CheckCircle className="h-12 w-12 text-green-600" />
-            </div>
+        {/* Confirmation Header */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+            <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-3xl font-bold mb-2">Pedido Realizado com Sucesso!</h1>
-          <p className="text-gray-600 text-lg">
-            Obrigado por sua compra. Seu pedido #{order.id} foi confirmado.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Pedido Confirmado!</h1>
+          <p className="text-gray-600">Seu pedido #{orderId} foi recebido com sucesso.</p>
         </div>
 
-        {/* Payment Instructions */}
-        <Card className="mb-8">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-xl font-medium">
-              <CreditCard className="mr-2 h-5 w-5" /> Instruções de Pagamento
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-2">Método selecionado: {order.payment_method === 'credit_card' ? 'Transferência Bancária' : 
-                    order.payment_method === 'pix' ? 'PIX' : 'Depósito Bancário'}</h3>
-                
-                {order.payment_method === 'credit_card' && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-500 mb-1">Banco</p>
-                        <p className="font-medium">{bankDetails.bankName}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Titular</p>
-                        <p className="font-medium">{bankDetails.accountHolder}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Agência</p>
-                        <p className="font-medium">{bankDetails.agencyNumber}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Conta</p>
-                        <p className="font-medium">{bankDetails.accountNumber}</p>
-                      </div>
-                    </div>
+        {/* Order Details Card */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Detalhes do Pedido</h2>
+              <span className="text-sm text-gray-500">
+                {new Date(order.created_at).toLocaleDateString('pt-BR')}
+              </span>
+            </div>
+            
+            <Separator className="mb-4" />
+            
+            {/* Order Items */}
+            <div className="space-y-4 mb-6">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex items-center">
+                  <div className="h-16 w-16 bg-gray-100 rounded-md flex items-center justify-center mr-4">
+                    <ShoppingBag className="h-6 w-6 text-gray-400" />
                   </div>
-                )}
-
-                {order.payment_method === 'pix' && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-500 mb-1">Tipo de Chave</p>
-                        <p className="font-medium">{bankDetails.pixKeyType}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Chave PIX</p>
-                        <p className="font-medium">{bankDetails.pixKey}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Destinatário</p>
-                        <p className="font-medium">{bankDetails.accountHolder}</p>
-                      </div>
-                    </div>
+                  <div className="flex-grow">
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-gray-500">
+                      Tamanho: {item.size} | Cor: {item.color} | Qtd: {item.quantity}
+                    </p>
                   </div>
-                )}
-
-                {order.payment_method === 'boleto' && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-500 mb-1">Banco</p>
-                        <p className="font-medium">{bankDetails.bankName}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Titular</p>
-                        <p className="font-medium">{bankDetails.accountHolder}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Agência</p>
-                        <p className="font-medium">{bankDetails.agencyNumber}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 mb-1">Conta</p>
-                        <p className="font-medium">{bankDetails.accountNumber}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-amber-50 p-4 rounded-md border border-amber-200">
-                <p className="text-amber-800">
-                  <strong>Importante:</strong> Após realizar o pagamento, envie o comprovante via WhatsApp para agilizar a liberação do seu pedido.
-                </p>
-                <div className="mt-3 flex justify-center">
-                  <a 
-                    href={getWhatsAppLink()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                  >
-                    Enviar Comprovante por WhatsApp
-                  </a>
+                  <p className="font-medium">{formatPrice(item.price * item.quantity)}</p>
                 </div>
+              ))}
+            </div>
+            
+            {/* Payment Method */}
+            <div className="p-4 bg-gray-50 rounded-lg mb-4">
+              <div className="flex items-center mb-2">
+                <div className="h-8 w-8 bg-white rounded-full flex items-center justify-center mr-3">
+                  {getPaymentIcon()}
+                </div>
+                <div>
+                  <p className="font-medium">Método de Pagamento</p>
+                  <p className="text-sm text-gray-500">
+                    {order.payment_method === 'credit_card' && 'Cartão de Crédito'}
+                    {order.payment_method === 'pix' && 'PIX'}
+                    {order.payment_method === 'boleto' && 'Boleto Bancário'}
+                    {order.payment_method === 'bank_transfer' && 'Transferência Bancária'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {/* Payment Instructions */}
+            {getPaymentInstructions()}
+            
+            {/* Order Totals */}
+            <div className="mt-6 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Subtotal</span>
+                <span>{formatPrice(order.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Frete</span>
+                <span>
+                  {order.shipping === 0 ? (
+                    <span className="text-green-600">Grátis</span>
+                  ) : (
+                    formatPrice(order.shipping)
+                  )}
+                </span>
+              </div>
+              <Separator className="my-2" />
+              <div className="flex justify-between font-semibold">
+                <span>Total</span>
+                <span>{formatPrice(order.total)}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Order Details */}
+        {/* Shipping Address */}
         <Card className="mb-8">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-xl font-medium">
-              <Package className="mr-2 h-5 w-5" /> Detalhes do Pedido
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500 mb-1">Número do Pedido</p>
-                  <p className="font-medium">#{order.id}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 mb-1">Data do Pedido</p>
-                  <p className="font-medium">{formatDate(order.created_at)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-500 mb-1">Status</p>
-                  <div className="flex items-center">
-                    <span className="inline-block w-2 h-2 rounded-full bg-amber-500 mr-2"></span>
-                    <span className="font-medium">Aguardando Pagamento</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-gray-500 mb-1">Método de Pagamento</p>
-                  <p className="font-medium">{order.payment_method === 'credit_card' ? 'Transferência Bancária' : 
-                    order.payment_method === 'pix' ? 'PIX' : 'Depósito Bancário'}</p>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Order Items */}
-              <div>
-                <h3 className="font-medium mb-3">Itens do Pedido</h3>
-                <div className="space-y-3">
-                  {order.items.map((item) => (
-                    <div key={item.id} className="flex justify-between">
-                      <div className="flex items-center">
-                        <span className="font-medium mr-1">{item.quantity}x</span>
-                        <span>{item.name}</span>
-                        <span className="text-sm text-gray-500 ml-1">
-                          ({item.size}, {item.color})
-                        </span>
-                      </div>
-                      <span>{formatPrice(item.price * item.quantity)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Totals */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Subtotal</span>
-                  <span>{formatPrice(order.subtotal)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Frete</span>
-                  <span>
-                    {order.shipping === 0 ? (
-                      <span className="text-green-600">Grátis</span>
-                    ) : (
-                      formatPrice(order.shipping)
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>Total</span>
-                  <span>{formatPrice(order.total)}</span>
-                </div>
-              </div>
-            </div>
+          <CardContent className="p-6">
+            <h3 className="font-semibold mb-3">Endereço de Entrega</h3>
+            <p>
+              {order.shipping_address.fullName}<br />
+              {order.shipping_address.street}, {order.shipping_address.number}
+              {order.shipping_address.complement && ` - ${order.shipping_address.complement}`}<br />
+              {order.shipping_address.neighborhood}, {order.shipping_address.city} - {order.shipping_address.state}<br />
+              CEP: {order.shipping_address.zipCode}<br />
+              Tel: {order.shipping_address.phone}
+            </p>
           </CardContent>
         </Card>
 
-        {/* Shipping Info */}
-        <Card className="mb-8">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-xl font-medium">
-              <Truck className="mr-2 h-5 w-5" /> Informações de Entrega
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-2">Endereço de Entrega</h3>
-                <p>{order.shipping_address.fullName}</p>
-                <p>
-                  {order.shipping_address.street}, {order.shipping_address.number}
-                  {order.shipping_address.complement && `, ${order.shipping_address.complement}`}
-                </p>
-                <p>
-                  {order.shipping_address.neighborhood}, {order.shipping_address.city} - {order.shipping_address.state}
-                </p>
-                <p>CEP: {order.shipping_address.zipCode}</p>
-                <p>Telefone: {order.shipping_address.phone}</p>
-              </div>
-
-              <Separator />
-
-              {/* Delivery Timeline */}
-              <div>
-                <h3 className="font-medium mb-3">Status de Entrega</h3>
-                <div className="relative">
-                  <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200"></div>
-                  
-                  <div className="relative flex items-center mb-6 pl-8">
-                    <div className="absolute left-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-                      <CheckCircle className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Pedido confirmado</p>
-                      <p className="text-sm text-gray-500">{formatDate(order.created_at)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="relative flex items-center mb-6 pl-8">
-                    <div className="absolute left-0 w-6 h-6 rounded-full bg-amber-200 flex items-center justify-center">
-                      <CreditCard className="h-4 w-4 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Aguardando pagamento</p>
-                      <p className="text-sm text-gray-500">Seu pedido será preparado após confirmação do pagamento</p>
-                    </div>
-                  </div>
-                  
-                  <div className="relative flex items-center mb-6 pl-8">
-                    <div className="absolute left-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                      <Package className="h-4 w-4 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Em preparação</p>
-                      <p className="text-sm text-gray-500">Seu pedido será preparado após confirmação do pagamento</p>
-                    </div>
-                  </div>
-                  
-                  <div className="relative flex items-center pl-8">
-                    <div className="absolute left-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                      <Truck className="h-4 w-4 text-gray-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Em transporte</p>
-                      <p className="text-sm text-gray-500">Previsão de entrega: {formatDate(deliveryDate.toString())}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="pt-4 flex items-center justify-center">
-                <div className="inline-flex items-center gap-1 text-sm text-gray-500">
-                  <Clock className="h-4 w-4" />
-                  <span>Acompanhe o status do seu pedido por e-mail</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Navigation Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
           <Link to="/">
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar às Compras
+              Continuar Comprando
             </Button>
           </Link>
-          <Link to="/produtos">
-            <Button className="w-full sm:w-auto">
-              Continuar Comprando
+          <Link to="/pedidos">
+            <Button className="w-full">
+              Ver Meus Pedidos
             </Button>
           </Link>
         </div>

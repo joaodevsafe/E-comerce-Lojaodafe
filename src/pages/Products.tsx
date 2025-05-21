@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { productService } from "@/services/api";
@@ -12,6 +12,7 @@ import ProductsList from "@/components/products/ProductsList";
 const Products = () => {
   const { toast } = useToast();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { handleAddItem } = useCart();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -75,13 +76,30 @@ const Products = () => {
     });
   };
 
-  // Filter products based on selected filters
+  // Get search query from URL
+  const searchQuery = searchParams.get('search') || '';
+
+  // Filter products based on selected filters and search query
   const filteredProducts = products.filter(product => {
+    // Filter by search
+    if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+        !product.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    
     // Filter by category
     if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
       return false;
     }
     
+    // Filter by price
+    if (priceRange.min && Number(product.price) < Number(priceRange.min)) {
+      return false;
+    }
+    if (priceRange.max && Number(product.price) > Number(priceRange.max)) {
+      return false;
+    }
+
     return true;
   });
 
@@ -115,6 +133,11 @@ const Products = () => {
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold text-gray-900">Produtos</h1>
           <p className="text-gray-600 mt-2">Encontre as últimas tendências da moda para renovar seu guarda-roupa.</p>
+          {searchQuery && (
+            <p className="mt-2 text-blue-600">
+              Resultados da busca: "{searchQuery}" ({filteredProducts.length} {filteredProducts.length === 1 ? 'produto' : 'produtos'})
+            </p>
+          )}
         </div>
       </div>
 
@@ -143,14 +166,22 @@ const Products = () => {
               <ProductViewOptions 
                 viewMode={viewMode}
                 onViewModeChange={setViewMode}
+                resultCount={filteredProducts.length}
               />
 
-              <ProductsList 
-                products={filteredProducts}
-                viewMode={viewMode}
-                onFavorite={handleFavorite}
-                onAddToCart={handleAddToCart}
-              />
+              {filteredProducts.length === 0 ? (
+                <div className="py-16 text-center">
+                  <p className="text-xl text-gray-600">Nenhum produto encontrado</p>
+                  <p className="mt-2 text-gray-500">Tente ajustar os filtros ou buscar por outro termo.</p>
+                </div>
+              ) : (
+                <ProductsList 
+                  products={filteredProducts}
+                  viewMode={viewMode}
+                  onFavorite={handleFavorite}
+                  onAddToCart={handleAddToCart}
+                />
+              )}
             </div>
           </div>
         )}

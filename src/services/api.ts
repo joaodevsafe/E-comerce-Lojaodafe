@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { PaymentMethodType } from '@/hooks/checkout/useCheckout';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -59,7 +60,7 @@ export interface Order {
   user_id: string;
   items: OrderItem[];
   shipping_address: ShippingAddress;
-  payment_method: string;
+  payment_method: PaymentMethodType;
   status: string;
   total: number;
   subtotal: number;
@@ -75,6 +76,11 @@ export const productService = {
   
   getById: async (id: number): Promise<Product> => {
     const response = await api.get(`/products/${id}`);
+    return response.data;
+  },
+
+  searchProducts: async (query: string): Promise<Product[]> => {
+    const response = await api.get(`/products?search=${query}`);
     return response.data;
   }
 };
@@ -123,18 +129,21 @@ export const orderService = {
   createOrder: async (
     items: CartItem[], 
     shippingAddress: any, 
-    paymentMethod: string
+    paymentMethod: PaymentMethodType
   ): Promise<any> => {
     const userId = cartService.getUserId();
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const shipping = total >= 199 ? 0 : 19.9;
+    
+    // Apply discount for PIX payments
+    const finalTotal = paymentMethod === 'pix' ? total * 0.95 + shipping : total + shipping;
     
     const response = await api.post('/orders', {
       user_id: userId,
       items,
       shipping_address: shippingAddress,
       payment_method: paymentMethod,
-      total: total + shipping,
+      total: finalTotal,
       subtotal: total,
       shipping
     });

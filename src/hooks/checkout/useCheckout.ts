@@ -8,8 +8,10 @@ import { useCartCalculations } from "@/hooks/cart/useCartCalculations";
 import { addressSchema, AddressFormValues } from "./useAddressValidation";
 import { useOrderCreation } from "./useOrderCreation";
 
+export type PaymentMethodType = "credit_card" | "pix" | "boleto" | "bank_transfer";
+
 export const useCheckout = () => {
-  const [selectedPayment, setSelectedPayment] = useState("credit_card");
+  const [selectedPayment, setSelectedPayment] = useState<PaymentMethodType>("credit_card");
 
   // Initialize form with validation
   const form = useForm<AddressFormValues>({

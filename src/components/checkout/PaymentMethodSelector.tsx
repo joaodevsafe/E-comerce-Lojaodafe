@@ -1,172 +1,76 @@
 
-import { useState } from "react";
-import { CreditCard, Banknote, Receipt } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBankDetails } from "@/contexts/BankDetailsContext";
-import { createWhatsAppLink } from "@/utils/whatsappLink";
-import { useContactInfo } from "@/contexts/ContactContext";
-
-// Payment method options
-const paymentMethods = [
-  { id: "credit_card", name: "Transferência Bancária", icon: CreditCard },
-  { id: "pix", name: "PIX", icon: Banknote },
-  { id: "boleto", name: "Depósito Bancário", icon: Receipt }
-];
+import { CreditCard, Banknote, Bank } from "lucide-react";
+import { PaymentMethodType } from "@/hooks/checkout/useCheckout";
 
 interface PaymentMethodSelectorProps {
-  selectedPayment: string;
-  setSelectedPayment: (method: string) => void;
+  selectedPayment: PaymentMethodType;
+  setSelectedPayment: (method: PaymentMethodType) => void;
 }
 
-const PaymentMethodSelector = ({ 
-  selectedPayment, 
-  setSelectedPayment 
+export const PaymentMethodSelector = ({
+  selectedPayment,
+  setSelectedPayment
 }: PaymentMethodSelectorProps) => {
-  const { bankDetails } = useBankDetails();
-  const { contactInfo } = useContactInfo();
-  
-  const getWhatsAppLink = () => {
-    const message = "Olá! Gostaria de confirmar o pagamento do meu pedido.";
-    return createWhatsAppLink(contactInfo.whatsapp, message);
-  };
-
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center text-xl font-medium">
-          <CreditCard className="mr-2 h-5 w-5" /> Método de Pagamento
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {paymentMethods.map(method => (
-            <div 
-              key={method.id}
-              onClick={() => setSelectedPayment(method.id)}
-              className={`flex items-center p-4 border rounded-md cursor-pointer transition-colors ${
-                selectedPayment === method.id 
-                  ? 'border-primary bg-primary/5' 
-                  : 'hover:bg-gray-50'
-              }`}
-            >
-              <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                selectedPayment === method.id ? 'border-primary' : 'border-gray-300'
-              }`}>
-                {selectedPayment === method.id && (
-                  <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                )}
+      <CardContent className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Método de Pagamento</h3>
+        
+        <RadioGroup
+          value={selectedPayment}
+          onValueChange={(value) => setSelectedPayment(value as PaymentMethodType)}
+          className="space-y-4"
+        >
+          <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "credit_card" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
+            <RadioGroupItem value="credit_card" id="credit_card" />
+            <Label htmlFor="credit_card" className="flex items-center cursor-pointer">
+              <CreditCard className="h-5 w-5 mr-3 text-primary" />
+              <div>
+                <p className="font-medium">Cartão de Crédito</p>
+                <p className="text-sm text-gray-500">Pague em até 12x no cartão de crédito</p>
               </div>
-              <method.icon className="h-5 w-5 mr-2 text-gray-600" />
-              <span className="font-medium">{method.name}</span>
-            </div>
-          ))}
-
-          {selectedPayment === 'credit_card' && (
-            <div className="p-4 bg-gray-50 rounded-md mt-4 space-y-4">
-              <p className="text-gray-700">Instruções para transferência:</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Banco:</p>
-                  <p className="font-medium">{bankDetails.bankName}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Titular:</p>
-                  <p className="font-medium">{bankDetails.accountHolder}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Agência:</p>
-                  <p className="font-medium">{bankDetails.agencyNumber}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Conta:</p>
-                  <p className="font-medium">{bankDetails.accountNumber}</p>
-                </div>
+            </Label>
+          </div>
+          
+          <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "pix" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
+            <RadioGroupItem value="pix" id="pix" />
+            <Label htmlFor="pix" className="flex items-center cursor-pointer">
+              <div className="h-5 w-5 mr-3 flex items-center justify-center text-primary font-bold">
+                PIX
               </div>
-              <div className="text-sm mt-2">
-                <p className="text-gray-600 mb-2">Após realizar a transferência, envie o comprovante para confirmação:</p>
-                <a 
-                  href={getWhatsAppLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-medium"
-                >
-                  Enviar comprovante por WhatsApp
-                </a>
+              <div>
+                <p className="font-medium">Pix</p>
+                <p className="text-sm text-gray-500">5% de desconto para pagamento via Pix</p>
               </div>
-            </div>
-          )}
-
-          {selectedPayment === 'pix' && (
-            <div className="p-4 bg-gray-50 rounded-md mt-4">
-              <p className="text-gray-700 mb-3">Dados para pagamento por PIX:</p>
-              <div className="space-y-2 mb-4">
-                <div>
-                  <p className="text-gray-600 text-sm">Tipo de Chave:</p>
-                  <p className="font-medium">{bankDetails.pixKeyType}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600 text-sm">Chave PIX:</p>
-                  <p className="font-medium">{bankDetails.pixKey}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600 text-sm">Destinatário:</p>
-                  <p className="font-medium">{bankDetails.accountHolder}</p>
-                </div>
+            </Label>
+          </div>
+          
+          <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "boleto" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
+            <RadioGroupItem value="boleto" id="boleto" />
+            <Label htmlFor="boleto" className="flex items-center cursor-pointer">
+              <Banknote className="h-5 w-5 mr-3 text-primary" />
+              <div>
+                <p className="font-medium">Boleto Bancário</p>
+                <p className="text-sm text-gray-500">O boleto será gerado após a finalização do pedido</p>
               </div>
-              <div className="text-sm">
-                <p className="text-gray-600 mb-2">Após realizar o pagamento, envie o comprovante para confirmação:</p>
-                <a 
-                  href={getWhatsAppLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-medium"
-                >
-                  Enviar comprovante por WhatsApp
-                </a>
+            </Label>
+          </div>
+          
+          <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
+            <RadioGroupItem value="bank_transfer" id="bank_transfer" />
+            <Label htmlFor="bank_transfer" className="flex items-center cursor-pointer">
+              <Bank className="h-5 w-5 mr-3 text-primary" />
+              <div>
+                <p className="font-medium">Transferência Bancária</p>
+                <p className="text-sm text-gray-500">Faça a transferência e envie o comprovante</p>
               </div>
-            </div>
-          )}
-
-          {selectedPayment === 'boleto' && (
-            <div className="p-4 bg-gray-50 rounded-md mt-4 space-y-4">
-              <p className="text-gray-700">Instruções para depósito bancário:</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Banco:</p>
-                  <p className="font-medium">{bankDetails.bankName}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Titular:</p>
-                  <p className="font-medium">{bankDetails.accountHolder}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Agência:</p>
-                  <p className="font-medium">{bankDetails.agencyNumber}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">Conta:</p>
-                  <p className="font-medium">{bankDetails.accountNumber}</p>
-                </div>
-              </div>
-              <div className="text-sm mt-2">
-                <p className="text-gray-600 mb-2">Após realizar o depósito, envie o comprovante para confirmação:</p>
-                <a 
-                  href={getWhatsAppLink()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline font-medium"
-                >
-                  Enviar comprovante por WhatsApp
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
+            </Label>
+          </div>
+        </RadioGroup>
       </CardContent>
     </Card>
   );
 };
-
-export { PaymentMethodSelector };
