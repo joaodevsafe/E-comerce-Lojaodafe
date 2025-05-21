@@ -7,8 +7,8 @@ import { CartItem as CartItemType } from "@/services/api";
 interface CartItemProps {
   item: CartItemType;
   formatPrice: (price: number) => string;
-  onRemove: (id: number) => void;
-  onQuantityChange: (id: number, quantity: number) => void;
+  onRemove: (id: string | number) => void;
+  onQuantityChange: (id: string | number, quantity: number) => void;
   isLast: boolean;
 }
 

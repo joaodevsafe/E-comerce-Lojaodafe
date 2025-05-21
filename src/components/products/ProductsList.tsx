@@ -8,8 +8,8 @@ import { Heart, ShoppingBag } from "lucide-react";
 interface ProductsListProps {
   products: Product[];
   viewMode: "grid" | "list";
-  onFavorite: (id: number) => void;
-  onAddToCart: (id: number) => void;
+  onFavorite: (id: string | number) => void;
+  onAddToCart: (id: string | number) => void;
 }
 
 const ProductsList = ({ 

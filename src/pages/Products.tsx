@@ -85,7 +85,7 @@ const Products = () => {
     return true;
   });
 
-  const handleAddToCart = (productId: number) => {
+  const handleAddToCart = (productId: string | number) => {
     // Default values for size and color
     handleAddItem(productId, 1, "M", "Padrão");
     toast({
@@ -94,7 +94,7 @@ const Products = () => {
     });
   };
 
-  const handleFavorite = () => {
+  const handleFavorite = (productId: string | number) => {
     toast({
       title: "Produto adicionado aos favoritos!",
       description: "Você pode visualizar seus favoritos em sua conta."

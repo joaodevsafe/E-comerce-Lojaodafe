@@ -25,15 +25,15 @@ export const useCart = () => {
     formatPrice
   } = useCartCalculations(cartItems);
 
-  const handleRemoveItem = (id: number | string) => {
+  const handleRemoveItem = (id: string | number) => {
     removeItemMutation.mutate(id);
   };
 
-  const handleAddItem = (productId: number | string, quantity: number, size: string, color: string) => {
+  const handleAddItem = (productId: string | number, quantity: number, size: string, color: string) => {
     addItemMutation.mutate({ productId, quantity, size, color });
   };
 
-  const handleQuantityChange = (id: number | string, quantity: number) => {
+  const handleQuantityChange = (id: string | number, quantity: number) => {
     if (quantity < 1) return;
     updateQuantityMutation.mutate({ id, quantity });
   };

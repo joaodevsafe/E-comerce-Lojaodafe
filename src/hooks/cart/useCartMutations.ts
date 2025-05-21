@@ -13,7 +13,7 @@ export const useCartMutations = (
 
   // Handle removing items from cart
   const removeItemMutation = useMutation({
-    mutationFn: async (id: number | string) => {
+    mutationFn: async (id: string | number) => {
       if (cartMode === "local") {
         setLocalCart(localCart => localCart.filter(item => item.id !== id));
         return { success: true };
@@ -22,7 +22,7 @@ export const useCartMutations = (
       const { error } = await supabase
         .from('cart_items')
         .delete()
-        .eq('id', id);
+        .eq('id', id.toString());
         
       if (error) throw error;
       return { success: true };
@@ -54,7 +54,7 @@ export const useCartMutations = (
       size, 
       color 
     }: { 
-      productId: number | string; 
+      productId: string | number; 
       quantity: number; 
       size: string; 
       color: string 
@@ -97,7 +97,7 @@ export const useCartMutations = (
       const { data: existingItems } = await supabase
         .from('cart_items')
         .select()
-        .eq('product_id', productId)
+        .eq('product_id', productId.toString())
         .eq('size', size)
         .eq('color', color);
         
@@ -114,7 +114,7 @@ export const useCartMutations = (
         const { error } = await supabase
           .from('cart_items')
           .insert({
-            product_id: productId,
+            product_id: productId.toString(),
             quantity,
             size, 
             color
@@ -146,7 +146,7 @@ export const useCartMutations = (
 
   // Handle quantity changes
   const updateQuantityMutation = useMutation({
-    mutationFn: async ({ id, quantity }: { id: number | string; quantity: number }) => {
+    mutationFn: async ({ id, quantity }: { id: string | number; quantity: number }) => {
       if (cartMode === "local") {
         setLocalCart(prev => 
           prev.map(item => item.id === id ? { ...item, quantity } : item)
@@ -157,7 +157,7 @@ export const useCartMutations = (
       const { error } = await supabase
         .from('cart_items')
         .update({ quantity })
-        .eq('id', id);
+        .eq('id', id.toString());
         
       if (error) throw error;
       return { success: true };
