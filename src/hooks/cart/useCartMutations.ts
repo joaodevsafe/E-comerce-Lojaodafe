@@ -1,52 +1,44 @@
 
 import { useMutation } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
 import { CartItem } from "@/services/api";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useCartMutations = (
-  cartMode: "local" | "remote", 
-  setLocalCart: React.Dispatch<React.SetStateAction<CartItem[]>>,
-  queryClient: any
-) => {
-  const { toast } = useToast();
+type CartMode = "local" | "remote";
 
-  // Handle removing items from cart
+export const useCartMutations = (
+  cartMode: CartMode,
+  setLocalCart: React.Dispatch<React.SetStateAction<CartItem[]>>,
+  queryClient: QueryClient
+) => {
+  // Remove Item Mutation
   const removeItemMutation = useMutation({
     mutationFn: async (id: string | number) => {
       if (cartMode === "local") {
-        setLocalCart(localCart => localCart.filter(item => item.id !== id));
-        return { success: true };
-      }
-      
-      const { error } = await supabase
-        .from('cart_items')
-        .delete()
-        .eq('id', id.toString());
+        return { id: String(id) };
+      } else {
+        const { error } = await supabase
+          .from('cart_items')
+          .delete()
+          .eq('id', String(id));
         
-      if (error) throw error;
-      return { success: true };
+        if (error) throw error;
+        return { id: String(id) };
+      }
     },
-    onSuccess: () => {
-      if (cartMode === "remote") {
+    onSuccess: (data) => {
+      if (cartMode === "local") {
+        setLocalCart(prev => prev.filter(item => String(item.id) !== data.id));
+      } else {
         queryClient.invalidateQueries({ queryKey: ['cart'] });
       }
-      toast({
-        title: "Produto removido",
-        description: "O item foi removido do carrinho com sucesso."
-      });
     },
     onError: (error) => {
-      console.error('Error removing item:', error);
-      toast({
-        title: "Erro ao remover produto",
-        description: "Não foi possível remover o item do carrinho.",
-        variant: "destructive"
-      });
+      console.error('Error removing item from cart:', error);
     }
   });
 
-  // Handle adding items to cart
+  // Add Item Mutation
   const addItemMutation = useMutation({
     mutationFn: async ({ 
       productId, 
@@ -54,126 +46,117 @@ export const useCartMutations = (
       size, 
       color 
     }: { 
-      productId: string | number; 
-      quantity: number; 
-      size: string; 
-      color: string 
+      productId: string | number;
+      quantity: number;
+      size: string;
+      color: string;
     }) => {
       if (cartMode === "local") {
-        // Get product info from products list in Products component
-        // This is a simplified version - in a real app you'd have a product service
+        // For local cart, simulate API response with a unique ID
+        const newId = Date.now().toString();
+        
+        // In a real implementation, you would fetch the product details
+        // For now, we'll just create a placeholder
         const newItem: CartItem = {
-          id: Date.now(), // Use timestamp as ID for local items
-          user_id: 'local',
-          product_id: productId,
+          id: newId,
+          product_id: String(productId),
           quantity,
           size,
           color,
-          name: `Produto ${productId}`, // Simplified name
-          price: 99.90, // Default price since we don't have access to the real price
+          name: `Product ${productId}`,
+          price: 99.99, // Placeholder price
           image_url: ''
         };
         
-        setLocalCart(prev => {
-          // Check if item already exists
-          const existingItemIndex = prev.findIndex(item => 
-            item.product_id === productId && item.size === size && item.color === color);
-          
-          if (existingItemIndex >= 0) {
-            // Update quantity if item exists
-            const updatedCart = [...prev];
-            updatedCart[existingItemIndex].quantity += quantity;
-            return updatedCart;
-          } else {
-            // Add new item
-            return [...prev, newItem];
-          }
-        });
-        
-        return { success: true };
-      }
-      
-      // For Supabase, first check if the item already exists
-      const { data: existingItems } = await supabase
-        .from('cart_items')
-        .select()
-        .eq('product_id', productId.toString())
-        .eq('size', size)
-        .eq('color', color);
-        
-      if (existingItems && existingItems.length > 0) {
-        // Update quantity of existing item
-        const { error } = await supabase
-          .from('cart_items')
-          .update({ quantity: existingItems[0].quantity + quantity })
-          .eq('id', existingItems[0].id);
-          
-        if (error) throw error;
+        return newItem;
       } else {
-        // Insert new item
-        const { error } = await supabase
+        // Get user_id from auth session for remote operations
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("User not authenticated");
+        
+        const user_id = session.user.id;
+        
+        // For Supabase, insert the new item
+        const { data, error } = await supabase
           .from('cart_items')
-          .insert({
-            product_id: productId.toString(),
-            quantity,
+          .insert({ 
+            product_id: String(productId),
+            quantity, 
             size, 
-            color
-          });
-          
+            color,
+            user_id
+          })
+          .select(`
+            id, 
+            product_id,
+            quantity,
+            size,
+            color,
+            products (name, price, image_url)
+          `)
+          .single();
+        
         if (error) throw error;
+        
+        // Transform the response to match CartItem structure
+        return {
+          id: data.id,
+          product_id: data.product_id,
+          quantity: data.quantity,
+          size: data.size,
+          color: data.color,
+          name: data.products?.name || `Product ${productId}`,
+          price: data.products?.price || 0,
+          image_url: data.products?.image_url || ''
+        };
       }
-      
-      return { success: true };
     },
-    onSuccess: () => {
-      if (cartMode === "remote") {
+    onSuccess: (newItem) => {
+      if (cartMode === "local") {
+        setLocalCart(prev => [...prev, newItem]);
+      } else {
         queryClient.invalidateQueries({ queryKey: ['cart'] });
       }
-      toast({
-        title: "Produto adicionado",
-        description: "O item foi adicionado ao carrinho com sucesso."
-      });
     },
     onError: (error) => {
-      console.error('Error adding item:', error);
-      toast({
-        title: "Erro ao adicionar produto",
-        description: "Não foi possível adicionar o item ao carrinho.",
-        variant: "destructive"
-      });
+      console.error('Error adding item to cart:', error);
     }
   });
 
-  // Handle quantity changes
+  // Update Quantity Mutation
   const updateQuantityMutation = useMutation({
-    mutationFn: async ({ id, quantity }: { id: string | number; quantity: number }) => {
+    mutationFn: async ({ 
+      id, 
+      quantity 
+    }: { 
+      id: string | number;
+      quantity: number;
+    }) => {
       if (cartMode === "local") {
-        setLocalCart(prev => 
-          prev.map(item => item.id === id ? { ...item, quantity } : item)
-        );
-        return { success: true };
-      }
-      
-      const { error } = await supabase
-        .from('cart_items')
-        .update({ quantity })
-        .eq('id', id.toString());
+        return { id: String(id), quantity };
+      } else {
+        const { error } = await supabase
+          .from('cart_items')
+          .update({ quantity })
+          .eq('id', String(id));
         
-      if (error) throw error;
-      return { success: true };
+        if (error) throw error;
+        return { id: String(id), quantity };
+      }
     },
-    onSuccess: () => {
-      if (cartMode === "remote") {
+    onSuccess: (data) => {
+      if (cartMode === "local") {
+        setLocalCart(prev => prev.map(item => 
+          String(item.id) === data.id 
+            ? { ...item, quantity: data.quantity } 
+            : item
+        ));
+      } else {
         queryClient.invalidateQueries({ queryKey: ['cart'] });
       }
     },
     onError: (error) => {
-      console.error('Error updating quantity:', error);
-      toast({
-        title: "Erro ao atualizar quantidade",
-        description: "Não foi possível atualizar a quantidade do item.",
-        variant: "destructive"
-      });
+      console.error('Error updating item quantity:', error);
     }
   });
 
