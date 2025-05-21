@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingBag, Trash2 } from "lucide-react";
-import { CartItem as CartItemType } from "@/services/api";
+import { CartItem as CartItemType } from "@/types";
 
 interface CartItemProps {
   item: CartItemType;

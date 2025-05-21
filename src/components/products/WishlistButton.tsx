@@ -16,21 +16,21 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const { isAuthenticated, openAuthDialog } = useAuth();
+  const { isAuthenticated, user, openAuthDialog } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       checkWishlistStatus();
     } else {
       setIsLoading(false);
     }
-  }, [productId, isAuthenticated]);
+  }, [productId, isAuthenticated, user]);
 
   const checkWishlistStatus = async () => {
     setIsLoading(true);
     try {
-      const result = await wishlistService.isInWishlist(productId);
+      const result = await wishlistService.isInWishlist(productId, user?.id);
       setIsInWishlist(result);
     } catch (error) {
       console.error("Error checking wishlist status:", error);
@@ -47,19 +47,19 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
 
     setIsLoading(true);
     try {
-      let success;
+      let result;
       
       if (isInWishlist) {
-        success = await wishlistService.removeFromWishlist(productId);
-        if (success) {
+        result = await wishlistService.removeFromWishlist(productId, user?.id);
+        if (result.success) {
           setIsInWishlist(false);
           toast({
             description: "Produto removido da lista de desejos",
           });
         }
       } else {
-        success = await wishlistService.addToWishlist(productId);
-        if (success) {
+        result = await wishlistService.addToWishlist(productId, user?.id);
+        if (result.success) {
           setIsInWishlist(true);
           toast({
             description: "Produto adicionado à lista de desejos",
@@ -67,7 +67,7 @@ const WishlistButton = ({ productId, variant = "outline" }: WishlistButtonProps)
         }
       }
       
-      if (!success) {
+      if (!result.success) {
         toast({
           title: "Erro",
           description: "Ocorreu um erro ao atualizar sua lista de desejos",

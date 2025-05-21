@@ -1,5 +1,5 @@
 
-import { CartItem } from "@/services/api";
+import { CartItem } from "@/types";
 
 export const useCartCalculations = (cartItems: CartItem[], discount: number = 0) => {
   // Calculate cart totals

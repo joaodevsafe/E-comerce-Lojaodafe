@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { couponService, Coupon } from '@/services/api';
+import { couponService } from '@/services/api';
+import { Coupon } from '@/types';
 
 export const useCoupon = (subtotal: number) => {
   const [couponCode, setCouponCode] = useState('');
@@ -20,7 +21,7 @@ export const useCoupon = (subtotal: number) => {
       
       if (result.valid && result.coupon) {
         setAppliedCoupon(result.coupon);
-        setDiscount(result.discount);
+        setDiscount(result.discount || 0);
         toast({
           title: "Cupom aplicado!",
           description: result.message,

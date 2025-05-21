@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { orderService } from "@/services/api";
 import type { AddressFormValues } from "./useAddressValidation";
-import type { CartItem } from "@/services/api";
+import type { CartItem } from "@/types";
 import { PaymentMethodType } from "./useCheckout";
 
 export const useOrderCreation = (cartItems: CartItem[]) => {
@@ -18,11 +18,7 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
   // Place order mutation
   const placeOrderMutation = useMutation({
     mutationFn: (data: { shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType }) => {
-      return orderService.createOrder(
-        cartItems,
-        data.shippingAddress,
-        data.paymentMethod
-      );
+      return orderService.createOrder(cartItems, data.shippingAddress, data.paymentMethod);
     },
     onSuccess: (data) => {
       setOrderId(data.order_id);

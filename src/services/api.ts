@@ -1,5 +1,6 @@
+
 import axios from 'axios';
-import { Product, ContactForm, BankDetails } from '@/types';
+import { Product, CartItem, WishlistItem, ProductReview, ContactForm, BankDetails, Coupon } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -18,12 +19,42 @@ export const productService = {
     }
   },
 
+  getAllSupabase: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
+      
+      if (error) throw error;
+      return data as Product[];
+    } catch (error) {
+      console.error('Error fetching products from Supabase:', error);
+      throw error;
+    }
+  },
+
   getProductById: async (id: string) => {
     try {
       const response = await axios.get(`${API_URL}/products/${id}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching product with ID ${id}:`, error);
+      throw error;
+    }
+  },
+
+  getByIdSupabase: async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data as Product;
+    } catch (error) {
+      console.error(`Error fetching product with ID ${id} from Supabase:`, error);
       throw error;
     }
   },
@@ -76,10 +107,39 @@ export const cartService = {
   getCartItems: async () => {
     try {
       const response = await axios.get(`${API_URL}/cart`);
-      return response.data;
+      return response.data as CartItem[];
     } catch (error) {
       console.error('Error fetching cart items:', error);
       throw error;
+    }
+  },
+
+  getItems: async () => {
+    try {
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select(`
+          *,
+          products(*)
+        `);
+      
+      if (error) throw error;
+      
+      // Transform data to match CartItem structure
+      return (data || []).map(item => ({
+        id: item.id,
+        product_id: item.product_id,
+        user_id: item.user_id,
+        quantity: item.quantity,
+        size: item.size,
+        color: item.color,
+        name: item.products?.name || 'Unknown Product',
+        price: item.products?.price || 0,
+        image_url: item.products?.image_url
+      })) as CartItem[];
+    } catch (error) {
+      console.error('Error fetching cart items from Supabase:', error);
+      return [] as CartItem[];
     }
   },
 
@@ -128,8 +188,13 @@ export const cartService = {
 // Order related services
 // ======================
 export const orderService = {
-  createOrder: async (orderData: any) => {
+  createOrder: async (cartItems: CartItem[], shippingAddress: any, paymentMethod: string) => {
     try {
+      const orderData = {
+        cartItems,
+        shippingAddress,
+        paymentMethod
+      };
       const response = await axios.post(`${API_URL}/orders/create`, orderData);
       return response.data;
     } catch (error) {
@@ -162,23 +227,13 @@ export const orderService = {
 // ======================
 // Coupon related services
 // ======================
-export type Coupon = {
-  id: string;
-  code: string;
-  discount: number;
-  minSubtotal: number;
-  expiresAt?: string;
-};
-
-type CouponValidationResult = {
-  valid: boolean;
-  message: string;
-  coupon?: Coupon;
-  discount?: number;
-};
-
 export const couponService = {
-  applyCoupon: async (code: string, subtotal: number): Promise<CouponValidationResult> => {
+  applyCoupon: async (code: string, subtotal: number): Promise<{
+    valid: boolean;
+    message: string;
+    coupon?: Coupon;
+    discount?: number;
+  }> => {
     try {
       // Buscar o cupom pelo código
       const { data: coupons, error: fetchError } = await supabase
@@ -191,27 +246,29 @@ export const couponService = {
         return { valid: false, message: 'Erro ao buscar cupom.' };
       }
 
-      const coupon = coupons && coupons.length > 0 ? coupons[0] : null;
+      const coupon = coupons && coupons.length > 0 ? coupons[0] as Coupon : null;
 
       if (!coupon) {
         return { valid: false, message: 'Cupom inválido.' };
       }
 
       // Verificar se o cupom está expirado
-      if (coupon.expiresAt) {
-        const expiryDate = new Date(coupon.expiresAt);
+      if (coupon.valid_until) {
+        const expiryDate = new Date(coupon.valid_until);
         if (expiryDate <= new Date()) {
           return { valid: false, message: 'Cupom expirado.' };
         }
       }
 
       // Verificar se o subtotal atende ao mínimo necessário
-      if (subtotal < coupon.minSubtotal) {
-        return { valid: false, message: `Subtotal mínimo de R$${coupon.minSubtotal} não atingido.` };
+      if (subtotal < coupon.min_purchase_amount) {
+        return { valid: false, message: `Subtotal mínimo de R$${coupon.min_purchase_amount} não atingido.` };
       }
 
       // Calcular o valor do desconto
-      const discount = (subtotal * coupon.discount) / 100;
+      const discount = coupon.discount_type === 'percentage' 
+        ? (subtotal * coupon.discount_value) / 100
+        : coupon.discount_value;
 
       return { valid: true, message: 'Cupom aplicado com sucesso!', coupon, discount };
     } catch (error) {
@@ -279,9 +336,40 @@ export const wishlistService = {
       return [];
     }
   },
+
+  getWishlist: async () => {
+    try {
+      const session = await supabase.auth.getSession();
+      const userId = session.data.session?.user.id;
+      
+      if (!userId) {
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .from('wishlist_items')
+        .select('*, products(*)')
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      return data as WishlistItem[];
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
+      return [] as WishlistItem[];
+    }
+  },
   
   addToWishlist: async (productId: string, userId: string) => {
     try {
+      // Get current user if userId not provided
+      if (!userId) {
+        const session = await supabase.auth.getSession();
+        userId = session.data.session?.user.id;
+        if (!userId) {
+          throw new Error('User not authenticated');
+        }
+      }
+      
       // Verificar se o item já existe na wishlist
       const { data: existingItems } = await supabase
         .from('wishlist_items')
@@ -311,6 +399,15 @@ export const wishlistService = {
   
   removeFromWishlist: async (productId: string, userId: string) => {
     try {
+      // Get current user if userId not provided
+      if (!userId) {
+        const session = await supabase.auth.getSession();
+        userId = session.data.session?.user.id;
+        if (!userId) {
+          throw new Error('User not authenticated');
+        }
+      }
+      
       const { error } = await supabase
         .from('wishlist_items')
         .delete()
@@ -325,8 +422,17 @@ export const wishlistService = {
     }
   },
   
-  isInWishlist: async (productId: string, userId: string): Promise<boolean> => {
+  isInWishlist: async (productId: string, userId?: string): Promise<boolean> => {
     try {
+      // Get current user if userId not provided
+      if (!userId) {
+        const session = await supabase.auth.getSession();
+        userId = session.data.session?.user.id;
+        if (!userId) {
+          return false; // Not logged in, can't be in wishlist
+        }
+      }
+      
       const { data, error } = await supabase
         .from('wishlist_items')
         .select('*')
@@ -356,12 +462,82 @@ export const reviewService = {
         }
     },
 
+    getUserReview: async (productId: string, userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('product_reviews')
+                .select('*')
+                .eq('product_id', productId)
+                .eq('user_id', userId)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "no rows returned" error
+            return data as ProductReview | null;
+        } catch (error) {
+            console.error(`Error fetching user review for product with ID ${productId}:`, error);
+            return null;
+        }
+    },
+
     createProductReview: async (productId: string, reviewData: any) => {
         try {
             const response = await axios.post(`${API_URL}/reviews/product/${productId}`, reviewData);
             return response.data;
         } catch (error) {
             console.error(`Error creating review for product with ID ${productId}:`, error);
+            throw error;
+        }
+    },
+
+    addReview: async (productId: string, rating: number, reviewText: string, userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('product_reviews')
+                .insert({
+                    product_id: productId,
+                    user_id: userId,
+                    rating,
+                    review_text: reviewText
+                })
+                .select();
+            
+            if (error) throw error;
+            return data[0] as ProductReview;
+        } catch (error) {
+            console.error(`Error adding review for product with ID ${productId}:`, error);
+            throw error;
+        }
+    },
+
+    updateReview: async (reviewId: string, rating: number, reviewText: string, userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from('product_reviews')
+                .update({ rating, review_text: reviewText })
+                .eq('id', reviewId)
+                .eq('user_id', userId) // Ensure user can only update their own reviews
+                .select();
+            
+            if (error) throw error;
+            return data[0] as ProductReview;
+        } catch (error) {
+            console.error(`Error updating review with ID ${reviewId}:`, error);
+            throw error;
+        }
+    },
+
+    deleteReview: async (reviewId: string, userId: string) => {
+        try {
+            const { error } = await supabase
+                .from('product_reviews')
+                .delete()
+                .eq('id', reviewId)
+                .eq('user_id', userId); // Ensure user can only delete their own reviews
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error(`Error deleting review with ID ${reviewId}:`, error);
             throw error;
         }
     }

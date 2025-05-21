@@ -1,7 +1,7 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { QueryClient } from "@tanstack/react-query";
-import { CartItem } from "@/services/api";
+import { CartItem } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 type CartMode = "local" | "remote";
@@ -118,7 +118,7 @@ export const useCartMutations = (
           name: data.products?.name || `Product ${productId}`,
           price: data.products?.price || 0,
           image_url: data.products?.image_url || ''
-        };
+        } as CartItem;
       }
     },
     onSuccess: (newItem) => {

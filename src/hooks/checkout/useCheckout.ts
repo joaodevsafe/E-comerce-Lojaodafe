@@ -7,6 +7,7 @@ import { cartService } from "@/services/api";
 import { useCartCalculations } from "@/hooks/cart/useCartCalculations";
 import { addressSchema, AddressFormValues } from "./useAddressValidation";
 import { useOrderCreation } from "./useOrderCreation";
+import { CartItem } from "@/types";
 
 export type PaymentMethodType = "credit_card" | "pix" | "boleto" | "bank_transfer";
 
@@ -37,7 +38,7 @@ export const useCheckout = () => {
   });
 
   // Calculate price totals
-  const { subtotal, shipping, total, formatPrice } = useCartCalculations(cartItems);
+  const { subtotal, shipping, total, formatPrice } = useCartCalculations(cartItems as CartItem[]);
 
   // Order creation functionality
   const { 
@@ -47,7 +48,7 @@ export const useCheckout = () => {
     orderId,
     handlePaymentSuccess,
     handlePaymentError
-  } = useOrderCreation(cartItems);
+  } = useOrderCreation(cartItems as CartItem[]);
 
   // Handle form submission
   const onSubmit = (values: AddressFormValues) => {

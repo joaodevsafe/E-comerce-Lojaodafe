@@ -7,6 +7,7 @@ import { PaymentMethodSelector } from "@/components/checkout/PaymentMethodSelect
 import { OrderSummary } from "@/components/checkout/OrderSummary";
 import { useCheckout } from "@/hooks/checkout";
 import EmptyCart from "@/components/cart/EmptyCart";
+import { CartItem } from "@/types";
 
 const Checkout = () => {
   const {
@@ -28,7 +29,7 @@ const Checkout = () => {
   } = useCheckout();
 
   // If cart is empty, show empty cart component
-  if (!isLoadingCart && cartItems.length === 0) {
+  if (!isLoadingCart && (cartItems as CartItem[]).length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 py-12 px-4 md:px-6">
         <div className="max-w-4xl mx-auto text-center">
@@ -74,7 +75,7 @@ const Checkout = () => {
           {/* Right Column: Order Summary */}
           <div>
             <OrderSummary 
-              cartItems={cartItems}
+              cartItems={cartItems as CartItem[]}
               subtotal={subtotal}
               shipping={shipping}
               total={total}

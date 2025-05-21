@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CartItem } from "@/services/api";
+import { CartItem } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 
 type CartMode = "local" | "remote";

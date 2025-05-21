@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +12,7 @@ const OrderConfirmation = () => {
   
   const { data: order, isLoading } = useQuery({
     queryKey: ['order', orderId],
-    queryFn: () => orderService.getOrderById(Number(orderId)),
+    queryFn: () => orderService.getOrderById(orderId || ''),
     enabled: !!orderId
   });
 

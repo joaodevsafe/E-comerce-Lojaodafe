@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { CartItem } from "@/services/api";
+import { CartItem } from "@/types";
 
 interface OrderSummaryProps {
   cartItems: CartItem[];
