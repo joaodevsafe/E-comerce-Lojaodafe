@@ -17,4 +17,5 @@ export type AuthContextType = {
   removeAdmin: (id: string) => void;
   getAdminUsers: () => User[];
   logout: () => void;
+  openAuthDialog: () => void; // Add this method
 };

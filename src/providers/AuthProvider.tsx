@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
 import { User } from "@/types/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +7,7 @@ import axios from "axios";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { toast } = useToast();
   
   const isAuthenticated = !!user;
@@ -157,6 +157,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
   
+  // Add openAuthDialog method to handle login dialog visibility
+  const openAuthDialog = useCallback(() => {
+    // This function will be overridden by the actual implementation in LoginDialog
+    // We will emit a custom event that LoginDialog will listen to
+    const event = new CustomEvent('open-auth-dialog');
+    window.dispatchEvent(event);
+  }, []);
+  
   return (
     <AuthContext.Provider
       value={{ 
@@ -169,7 +177,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         registerAdmin,
         removeAdmin,
         getAdminUsers,
-        logout 
+        logout,
+        openAuthDialog
       }}
     >
       {children}

@@ -1,10 +1,10 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import LoginForm from "@/components/auth/LoginForm";
 import RegisterForm from "@/components/auth/RegisterForm";
 
@@ -22,6 +22,20 @@ const LoginDialog = ({ children }: LoginDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { login, loginWithGoogle, register } = useAuth();
+  
+  useEffect(() => {
+    // Listen for the custom event to open the dialog
+    const handleOpenDialog = () => {
+      setIsOpen(true);
+    };
+    
+    window.addEventListener('open-auth-dialog', handleOpenDialog);
+    
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('open-auth-dialog', handleOpenDialog);
+    };
+  }, []);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
