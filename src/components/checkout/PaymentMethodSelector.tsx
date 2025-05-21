@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Banknote, Bank } from "lucide-react";
+import { CreditCard, Banknote, Building } from "lucide-react";
 import { PaymentMethodType } from "@/hooks/checkout/useCheckout";
 
 interface PaymentMethodSelectorProps {
@@ -62,7 +62,7 @@ export const PaymentMethodSelector = ({
           <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
             <RadioGroupItem value="bank_transfer" id="bank_transfer" />
             <Label htmlFor="bank_transfer" className="flex items-center cursor-pointer">
-              <Bank className="h-5 w-5 mr-3 text-primary" />
+              <Building className="h-5 w-5 mr-3 text-primary" />
               <div>
                 <p className="font-medium">Transferência Bancária</p>
                 <p className="text-sm text-gray-500">Faça a transferência e envie o comprovante</p>
