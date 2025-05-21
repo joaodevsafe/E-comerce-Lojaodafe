@@ -11,7 +11,7 @@ const api = axios.create({
 });
 
 export interface Product {
-  id: number;
+  id: number | string;
   name: string;
   description: string;
   price: number;
@@ -20,9 +20,9 @@ export interface Product {
 }
 
 export interface CartItem {
-  id: number;
+  id: number | string;
   user_id: string;
-  product_id: number;
+  product_id: number | string;
   quantity: number;
   size: string;
   color: string;
