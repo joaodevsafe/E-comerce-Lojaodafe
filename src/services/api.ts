@@ -224,60 +224,6 @@ export const orderService = {
 };
 
 // ======================
-// Coupon related services
-// ======================
-export const couponService = {
-  applyCoupon: async (code: string, subtotal: number): Promise<{
-    valid: boolean;
-    message: string;
-    coupon?: Coupon;
-    discount?: number;
-  }> => {
-    try {
-      // Buscar o cupom pelo código
-      const { data: coupons, error: fetchError } = await supabase
-        .from('coupons')
-        .select('*')
-        .eq('code', code);
-
-      if (fetchError) {
-        console.error('Erro ao buscar cupom:', fetchError);
-        return { valid: false, message: 'Erro ao buscar cupom.' };
-      }
-
-      const coupon = coupons && coupons.length > 0 ? coupons[0] as Coupon : null;
-
-      if (!coupon) {
-        return { valid: false, message: 'Cupom inválido.' };
-      }
-
-      // Verificar se o cupom está expirado
-      if (coupon.valid_until) {
-        const expiryDate = new Date(coupon.valid_until);
-        if (expiryDate <= new Date()) {
-          return { valid: false, message: 'Cupom expirado.' };
-        }
-      }
-
-      // Verificar se o subtotal atende ao mínimo necessário
-      if (subtotal < coupon.min_purchase_amount) {
-        return { valid: false, message: `Subtotal mínimo de R$${coupon.min_purchase_amount} não atingido.` };
-      }
-
-      // Calcular o valor do desconto
-      const discount = coupon.discount_type === 'percentage' 
-        ? (subtotal * coupon.discount_value) / 100
-        : coupon.discount_value;
-
-      return { valid: true, message: 'Cupom aplicado com sucesso!', coupon, discount };
-    } catch (error) {
-      console.error('Erro ao aplicar cupom:', error);
-      return { valid: false, message: 'Erro ao aplicar cupom.' };
-    }
-  },
-};
-
-// ======================
 // Contact related services
 // ======================
 export const contactService = {

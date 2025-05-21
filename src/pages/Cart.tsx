@@ -3,11 +3,9 @@ import { Link } from "react-router-dom";
 import { useCart } from "@/hooks/useCart";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
-import DiscountCoupon from "@/components/cart/DiscountCoupon";
 import EmptyCart from "@/components/cart/EmptyCart";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
-import { useState } from "react";
 
 const Cart = () => {
   const { 
@@ -20,21 +18,6 @@ const Cart = () => {
     total,
     formatPrice
   } = useCart();
-  
-  const [discount, setDiscount] = useState(0);
-  const [couponCode, setCouponCode] = useState('');
-  
-  const handleApplyCoupon = (discountAmount: number, code: string) => {
-    setDiscount(discountAmount);
-    setCouponCode(code);
-  };
-  
-  const handleRemoveCoupon = () => {
-    setDiscount(0);
-    setCouponCode('');
-  };
-  
-  const finalTotal = total - discount;
   
   const handleCheckout = () => {
     // Navigation is handled by the link to /checkout
@@ -84,15 +67,6 @@ const Cart = () => {
                 ))}
               </div>
             </div>
-            
-            {/* Coupon Section */}
-            <div className="mt-6">
-              <DiscountCoupon 
-                subtotal={subtotal} 
-                onApplied={handleApplyCoupon}
-                onRemoved={handleRemoveCoupon}
-              />
-            </div>
           </div>
           
           {/* Order Summary */}
@@ -101,8 +75,8 @@ const Cart = () => {
               itemCount={cartItems.length}
               subtotal={subtotal}
               shipping={shipping}
-              discount={discount}
-              total={finalTotal}
+              discount={0}
+              total={total}
               formatPrice={formatPrice}
               onCheckout={handleCheckout}
             />
