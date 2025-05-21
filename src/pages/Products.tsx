@@ -1,189 +1,153 @@
 
-import { useState, useEffect } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
-import { productService } from "@/services/api";
-import { useCart } from "@/hooks/useCart";
-import ProductFilters from "@/components/products/ProductFilters";
-import ProductViewOptions from "@/components/products/ProductViewOptions";
-import ProductsList from "@/components/products/ProductsList";
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { productService, Product } from '@/services/api';
+import ProductCard from '@/components/products/ProductCard';
+import ProductSearch from '@/components/products/ProductSearch';
+import { Loader2 } from 'lucide-react';
 
 const Products = () => {
-  const { toast } = useToast();
-  const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { handleAddItem } = useCart();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<{ min: string; max: string }>({ min: "", max: "" });
-  const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [maxPrice, setMaxPrice] = useState(1000);
 
-  // Fetch products from API
-  const { data: products = [], isLoading } = useQuery({
-    queryKey: ['products'],
-    queryFn: productService.getAll
-  });
-
-  // Parse URL parameters on component mount
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    
-    // Parse categories from URL
-    const categoriesParam = searchParams.get('categories');
-    if (categoriesParam) {
-      const categories = categoriesParam.split(',');
-      setSelectedCategories(categories);
+    fetchProducts();
+  }, []);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      applyFiltersFromURL();
+    }
+  }, [products, searchParams]);
+
+  const fetchProducts = async () => {
+    setIsLoading(true);
+    try {
+      const allProducts = await productService.getAllSupabase();
+      setProducts(allProducts);
+      setFilteredProducts(allProducts);
+      
+      // Extract unique categories
+      const uniqueCategories = Array.from(new Set(allProducts.map(p => p.category)));
+      setCategories(uniqueCategories);
+      
+      // Find max price
+      const highestPrice = Math.max(...allProducts.map(p => p.price));
+      setMaxPrice(Math.ceil(highestPrice / 100) * 100); // Round up to nearest hundred
+      
+      applyFiltersFromURL();
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const applyFiltersFromURL = () => {
+    const query = searchParams.get('query');
+    const category = searchParams.get('category');
+    const minPrice = searchParams.get('minPrice') ? Number(searchParams.get('minPrice')) : 0;
+    const maxPriceParam = searchParams.get('maxPrice') ? Number(searchParams.get('maxPrice')) : maxPrice;
+    const sortBy = searchParams.get('sortBy') || 'name';
+    const sortOrder = (searchParams.get('sortOrder') as 'asc' | 'desc') || 'asc';
+
+    handleSearch({
+      query: query || undefined,
+      category: category || undefined,
+      minPrice: minPrice || undefined,
+      maxPrice: maxPriceParam !== maxPrice ? maxPriceParam : undefined,
+      sortBy,
+      sortOrder
+    });
+  };
+
+  const handleSearch = (filters: {
+    query?: string;
+    category?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    let results = [...products];
+
+    // Apply text search
+    if (filters.query) {
+      const searchTerms = filters.query.toLowerCase();
+      results = results.filter(product =>
+        product.name.toLowerCase().includes(searchTerms) ||
+        (product.description && product.description.toLowerCase().includes(searchTerms))
+      );
+    }
+
+    // Apply category filter
+    if (filters.category) {
+      results = results.filter(product => product.category === filters.category);
+    }
+
+    // Apply price filter
+    if (filters.minPrice !== undefined) {
+      results = results.filter(product => product.price >= filters.minPrice!);
     }
     
-    // Parse price range from URL
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
-    if (minPrice || maxPrice) {
-      setPriceRange({
-        min: minPrice || "",
-        max: maxPrice || ""
+    if (filters.maxPrice !== undefined) {
+      results = results.filter(product => product.price <= filters.maxPrice!);
+    }
+
+    // Apply sorting
+    if (filters.sortBy) {
+      results.sort((a, b) => {
+        const field = filters.sortBy as keyof Product;
+        
+        if (typeof a[field] === 'string' && typeof b[field] === 'string') {
+          return filters.sortOrder === 'asc'
+            ? (a[field] as string).localeCompare(b[field] as string)
+            : (b[field] as string).localeCompare(a[field] as string);
+        }
+        
+        return filters.sortOrder === 'asc'
+          ? (a[field] as number) - (b[field] as number)
+          : (b[field] as number) - (a[field] as number);
       });
     }
-    
-    // Parse sizes from URL
-    const sizesParam = searchParams.get('sizes');
-    if (sizesParam) {
-      const sizes = sizesParam.split(',');
-      setSelectedSizes(sizes);
-    }
-  }, [location.search]);
 
-  // Handle category selection
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(category)) {
-        return prev.filter(c => c !== category);
-      } else {
-        return [...prev, category];
-      }
-    });
-  };
-
-  // Handle size selection
-  const handleSizeSelect = (size: string) => {
-    setSelectedSizes(prev => {
-      if (prev.includes(size)) {
-        return prev.filter(s => s !== size);
-      } else {
-        return [...prev, size];
-      }
-    });
-  };
-
-  // Get search query from URL
-  const searchQuery = searchParams.get('search') || '';
-
-  // Filter products based on selected filters and search query
-  const filteredProducts = products.filter(product => {
-    // Filter by search
-    if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !product.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    // Filter by category
-    if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
-      return false;
-    }
-    
-    // Filter by price
-    if (priceRange.min && Number(product.price) < Number(priceRange.min)) {
-      return false;
-    }
-    if (priceRange.max && Number(product.price) > Number(priceRange.max)) {
-      return false;
-    }
-
-    return true;
-  });
-
-  const handleAddToCart = (productId: string | number) => {
-    // Default values for size and color
-    handleAddItem(productId, 1, "M", "Padrão");
-    toast({
-      title: "Produto adicionado ao carrinho!",
-      description: "Você pode finalizar sua compra a qualquer momento."
-    });
-  };
-
-  const handleFavorite = (productId: string | number) => {
-    toast({
-      title: "Produto adicionado aos favoritos!",
-      description: "Você pode visualizar seus favoritos em sua conta."
-    });
-  };
-
-  const handleApplyFilters = () => {
-    toast({
-      title: "Filtros aplicados",
-      description: "Os produtos foram filtrados conforme sua seleção."
-    });
+    setFilteredProducts(results);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
-      {/* Header */}
-      <div className="bg-white py-8 px-4 md:px-6 border-b">
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900">Produtos</h1>
-          <p className="text-gray-600 mt-2">Encontre as últimas tendências da moda para renovar seu guarda-roupa.</p>
-          {searchQuery && (
-            <p className="mt-2 text-blue-600">
-              Resultados da busca: "{searchQuery}" ({filteredProducts.length} {filteredProducts.length === 1 ? 'produto' : 'produtos'})
-            </p>
-          )}
-        </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto py-8 px-4 md:px-6">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-6">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Produtos</h1>
+        
+        <ProductSearch 
+          onSearch={handleSearch} 
+          categories={categories} 
+          maxPrice={maxPrice} 
+        />
+        
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Filtros - Lado Esquerdo */}
-            <div className="md:w-1/4">
-              <ProductFilters 
-                selectedCategories={selectedCategories}
-                onCategoryChange={handleCategoryChange}
-                priceRange={priceRange}
-                onPriceRangeChange={setPriceRange}
-                selectedSizes={selectedSizes}
-                onSizeSelect={handleSizeSelect}
-                onApplyFilters={handleApplyFilters}
-              />
-            </div>
-
-            {/* Lista de Produtos - Lado Direito */}
-            <div className="md:w-3/4">
-              <ProductViewOptions 
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                resultCount={filteredProducts.length}
-              />
-
-              {filteredProducts.length === 0 ? (
-                <div className="py-16 text-center">
-                  <p className="text-xl text-gray-600">Nenhum produto encontrado</p>
-                  <p className="mt-2 text-gray-500">Tente ajustar os filtros ou buscar por outro termo.</p>
-                </div>
-              ) : (
-                <ProductsList 
-                  products={filteredProducts}
-                  viewMode={viewMode}
-                  onFavorite={handleFavorite}
-                  onAddToCart={handleAddToCart}
-                />
-              )}
-            </div>
-          </div>
+          <>
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20">
+                <p className="text-xl text-gray-600 mb-4">Nenhum produto encontrado</p>
+                <p className="text-gray-500">Tente usar outros filtros ou termos de busca.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

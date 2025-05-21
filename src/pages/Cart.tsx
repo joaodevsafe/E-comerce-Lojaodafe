@@ -7,6 +7,7 @@ import DiscountCoupon from "@/components/cart/DiscountCoupon";
 import EmptyCart from "@/components/cart/EmptyCart";
 import { Button } from "@/components/ui/button";
 import { ShoppingBag, ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 const Cart = () => {
   const { 
@@ -20,10 +21,20 @@ const Cart = () => {
     formatPrice
   } = useCart();
   
-  const handleApplyCoupon = (code: string) => {
-    console.log("Coupon applied:", code);
-    // Implementation would go here
+  const [discount, setDiscount] = useState(0);
+  const [couponCode, setCouponCode] = useState('');
+  
+  const handleApplyCoupon = (discountAmount: number, code: string) => {
+    setDiscount(discountAmount);
+    setCouponCode(code);
   };
+  
+  const handleRemoveCoupon = () => {
+    setDiscount(0);
+    setCouponCode('');
+  };
+  
+  const finalTotal = total - discount;
   
   const handleCheckout = () => {
     // Navigation is handled by the link to /checkout
@@ -76,7 +87,11 @@ const Cart = () => {
             
             {/* Coupon Section */}
             <div className="mt-6">
-              <DiscountCoupon onApply={handleApplyCoupon} />
+              <DiscountCoupon 
+                subtotal={subtotal} 
+                onApplied={handleApplyCoupon}
+                onRemoved={handleRemoveCoupon}
+              />
             </div>
           </div>
           
@@ -86,7 +101,8 @@ const Cart = () => {
               itemCount={cartItems.length}
               subtotal={subtotal}
               shipping={shipping}
-              total={total}
+              discount={discount}
+              total={finalTotal}
               formatPrice={formatPrice}
               onCheckout={handleCheckout}
             />

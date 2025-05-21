@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, CreditCard } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface CartSummaryProps {
   itemCount: number;
   subtotal: number;
   shipping: number;
+  discount?: number;
   total: number;
   formatPrice: (price: number) => string;
   onCheckout: () => void;
@@ -17,6 +19,7 @@ const CartSummary = ({
   itemCount, 
   subtotal, 
   shipping, 
+  discount = 0,
   total, 
   formatPrice, 
   onCheckout 
@@ -44,6 +47,13 @@ const CartSummary = ({
               )}
             </span>
           </div>
+          
+          {discount > 0 && (
+            <div className="flex justify-between text-green-600">
+              <span>Desconto</span>
+              <span>-{formatPrice(discount)}</span>
+            </div>
+          )}
           
           <Separator className="my-3" />
           

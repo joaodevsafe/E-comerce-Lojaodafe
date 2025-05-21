@@ -17,6 +17,7 @@ import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
+import Wishlist from "./pages/Wishlist";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -50,6 +51,11 @@ const App = () => {
                           <Route path="/carrinho" element={<Cart />} />
                           <Route path="/checkout" element={<Checkout />} />
                           <Route path="/pedido-confirmado/:orderId" element={<OrderConfirmation />} />
+                          <Route path="/wishlist" element={
+                            <ProtectedRoute>
+                              <Wishlist />
+                            </ProtectedRoute>
+                          } />
                           <Route path="/admin" element={
                             <ProtectedRoute requiresAdmin>
                               <Admin />

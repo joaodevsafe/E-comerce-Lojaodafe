@@ -50,6 +50,48 @@ export type Database = {
           },
         ]
       }
+      coupons: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          current_uses: number | null
+          discount_type: string
+          discount_value: number
+          id: string
+          max_uses: number | null
+          min_purchase_amount: number | null
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_type: string
+          discount_value: number
+          id?: string
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          current_uses?: number | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          max_uses?: number | null
+          min_purchase_amount?: number | null
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           color: string
@@ -140,6 +182,71 @@ export type Database = {
         }
         Relationships: []
       }
+      pay: {
+        Row: {
+          attrs: Json | null
+          business_type: string | null
+          country: string | null
+          created: string | null
+          email: string | null
+          id: string | null
+          type: string | null
+        }
+        Insert: {
+          attrs?: Json | null
+          business_type?: string | null
+          country?: string | null
+          created?: string | null
+          email?: string | null
+          id?: string | null
+          type?: string | null
+        }
+        Update: {
+          attrs?: Json | null
+          business_type?: string | null
+          country?: string | null
+          created?: string | null
+          email?: string | null
+          id?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      product_reviews: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          rating: number
+          review_text: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          rating: number
+          review_text?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          rating?: number
+          review_text?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string
@@ -196,6 +303,35 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
