@@ -6,7 +6,7 @@ import { CreditCard, Banknote, Building } from "lucide-react";
 import { PaymentMethodType } from "@/hooks/checkout/useCheckout";
 import { CreditCardForm } from "./CreditCardForm";
 import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 
 // Carregar Stripe com a chave publicável
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
