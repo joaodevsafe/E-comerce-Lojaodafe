@@ -186,7 +186,7 @@ export const couponService = {
     
     if (discountType === 'percentage') {
       discount = (subtotal * coupon.discount_value) / 100;
-    } else {
+    } else if (discountType === 'fixed') {
       discount = coupon.discount_value;
     }
     
