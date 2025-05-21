@@ -66,7 +66,7 @@ export const useCartMutations = (
         // For now, we'll just create a placeholder
         const newItem: CartItem = {
           id: newId,
-          user_id: guestUserId, // Add the user_id property here
+          user_id: guestUserId,
           product_id: String(productId),
           quantity,
           size,
@@ -114,7 +114,7 @@ export const useCartMutations = (
           quantity: data.quantity,
           size: data.size,
           color: data.color,
-          user_id: data.user_id, // Include user_id from the database response
+          user_id: data.user_id,
           name: data.products?.name || `Product ${productId}`,
           price: data.products?.price || 0,
           image_url: data.products?.image_url || ''
