@@ -55,10 +55,18 @@ export const useCartMutations = (
         // For local cart, simulate API response with a unique ID
         const newId = Date.now().toString();
         
+        // Generate a guest user ID for local cart
+        let guestUserId = localStorage.getItem('guestUserId');
+        if (!guestUserId) {
+          guestUserId = 'guest_' + Math.random().toString(36).substring(2, 15);
+          localStorage.setItem('guestUserId', guestUserId);
+        }
+        
         // In a real implementation, you would fetch the product details
         // For now, we'll just create a placeholder
         const newItem: CartItem = {
           id: newId,
+          user_id: guestUserId, // Add the user_id property here
           product_id: String(productId),
           quantity,
           size,
@@ -92,6 +100,7 @@ export const useCartMutations = (
             quantity,
             size,
             color,
+            user_id,
             products (name, price, image_url)
           `)
           .single();
@@ -105,6 +114,7 @@ export const useCartMutations = (
           quantity: data.quantity,
           size: data.size,
           color: data.color,
+          user_id: data.user_id, // Include user_id from the database response
           name: data.products?.name || `Product ${productId}`,
           price: data.products?.price || 0,
           image_url: data.products?.image_url || ''
