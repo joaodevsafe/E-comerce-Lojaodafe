@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { couponService } from '@/services/api';
+import { couponService } from '@/services/couponService';
 import { Coupon } from '@/types';
 
 export const useCoupon = (subtotal: number) => {
