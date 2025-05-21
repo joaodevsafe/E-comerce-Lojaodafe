@@ -4,15 +4,33 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CreditCard, Banknote, Building } from "lucide-react";
 import { PaymentMethodType } from "@/hooks/checkout/useCheckout";
+import { CreditCardForm } from "./CreditCardForm";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/react-stripe-js";
+
+// Carregar Stripe com a chave publicável
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
 
 interface PaymentMethodSelectorProps {
   selectedPayment: PaymentMethodType;
   setSelectedPayment: (method: PaymentMethodType) => void;
+  orderId: string | null;
+  amount: number;
+  onPaymentSuccess: (paymentIntentId: string) => void;
+  onPaymentError: (error: string) => void;
+  isProcessing: boolean;
+  setIsProcessing: (processing: boolean) => void;
 }
 
 export const PaymentMethodSelector = ({
   selectedPayment,
-  setSelectedPayment
+  setSelectedPayment,
+  orderId,
+  amount,
+  onPaymentSuccess,
+  onPaymentError,
+  isProcessing,
+  setIsProcessing
 }: PaymentMethodSelectorProps) => {
   return (
     <Card>
@@ -26,7 +44,7 @@ export const PaymentMethodSelector = ({
         >
           <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "credit_card" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
             <RadioGroupItem value="credit_card" id="credit_card" />
-            <Label htmlFor="credit_card" className="flex items-center cursor-pointer">
+            <Label htmlFor="credit_card" className="flex items-center cursor-pointer w-full">
               <CreditCard className="h-5 w-5 mr-3 text-primary" />
               <div>
                 <p className="font-medium">Cartão de Crédito</p>
@@ -37,7 +55,7 @@ export const PaymentMethodSelector = ({
           
           <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "pix" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
             <RadioGroupItem value="pix" id="pix" />
-            <Label htmlFor="pix" className="flex items-center cursor-pointer">
+            <Label htmlFor="pix" className="flex items-center cursor-pointer w-full">
               <div className="h-5 w-5 mr-3 flex items-center justify-center text-primary font-bold">
                 PIX
               </div>
@@ -50,7 +68,7 @@ export const PaymentMethodSelector = ({
           
           <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "boleto" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
             <RadioGroupItem value="boleto" id="boleto" />
-            <Label htmlFor="boleto" className="flex items-center cursor-pointer">
+            <Label htmlFor="boleto" className="flex items-center cursor-pointer w-full">
               <Banknote className="h-5 w-5 mr-3 text-primary" />
               <div>
                 <p className="font-medium">Boleto Bancário</p>
@@ -61,7 +79,7 @@ export const PaymentMethodSelector = ({
           
           <div className={`flex items-center space-x-4 p-4 rounded-lg border-2 ${selectedPayment === "bank_transfer" ? "border-primary bg-primary/5" : "border-gray-200"}`}>
             <RadioGroupItem value="bank_transfer" id="bank_transfer" />
-            <Label htmlFor="bank_transfer" className="flex items-center cursor-pointer">
+            <Label htmlFor="bank_transfer" className="flex items-center cursor-pointer w-full">
               <Building className="h-5 w-5 mr-3 text-primary" />
               <div>
                 <p className="font-medium">Transferência Bancária</p>
@@ -70,6 +88,21 @@ export const PaymentMethodSelector = ({
             </Label>
           </div>
         </RadioGroup>
+        
+        {selectedPayment === "credit_card" && (
+          <div className="mt-6">
+            <Elements stripe={stripePromise}>
+              <CreditCardForm
+                amount={amount}
+                onPaymentSuccess={onPaymentSuccess}
+                onPaymentError={onPaymentError}
+                isProcessing={isProcessing}
+                setIsProcessing={setIsProcessing}
+                orderId={orderId}
+              />
+            </Elements>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

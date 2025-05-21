@@ -9,6 +9,7 @@ const productRoutes = require('./routes/products');
 const cartRoutes = require('./routes/cart');
 const orderRoutes = require('./routes/orders');
 const schemaRoutes = require('./routes/schema');
+const paymentRoutes = require('./routes/payment');
 
 // Import middleware
 const setupCors = require('./middleware/cors');
@@ -29,6 +30,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/update-schema', schemaRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Start server
 let server;

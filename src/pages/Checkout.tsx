@@ -16,11 +16,15 @@ const Checkout = () => {
     selectedPayment,
     setSelectedPayment,
     isProcessing,
+    setIsProcessing,
     subtotal,
     shipping,
     total,
     formatPrice,
-    onSubmit
+    onSubmit,
+    orderId,
+    handlePaymentSuccess,
+    handlePaymentError
   } = useCheckout();
 
   // If cart is empty, show empty cart component
@@ -58,6 +62,12 @@ const Checkout = () => {
             <PaymentMethodSelector 
               selectedPayment={selectedPayment}
               setSelectedPayment={setSelectedPayment}
+              orderId={orderId}
+              amount={total}
+              onPaymentSuccess={handlePaymentSuccess}
+              onPaymentError={handlePaymentError}
+              isProcessing={isProcessing}
+              setIsProcessing={setIsProcessing}
             />
           </div>
           

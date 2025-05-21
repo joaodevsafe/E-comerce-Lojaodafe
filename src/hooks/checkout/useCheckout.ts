@@ -40,7 +40,14 @@ export const useCheckout = () => {
   const { subtotal, shipping, total, formatPrice } = useCartCalculations(cartItems);
 
   // Order creation functionality
-  const { isProcessing, createOrder } = useOrderCreation(cartItems);
+  const { 
+    isProcessing, 
+    setIsProcessing,
+    createOrder,
+    orderId,
+    handlePaymentSuccess,
+    handlePaymentError
+  } = useOrderCreation(cartItems);
 
   // Handle form submission
   const onSubmit = (values: AddressFormValues) => {
@@ -54,10 +61,14 @@ export const useCheckout = () => {
     selectedPayment,
     setSelectedPayment,
     isProcessing,
+    setIsProcessing,
     subtotal,
     shipping,
     total,
     formatPrice,
-    onSubmit: form.handleSubmit(onSubmit)
+    onSubmit: form.handleSubmit(onSubmit),
+    orderId,
+    handlePaymentSuccess,
+    handlePaymentError
   };
 };

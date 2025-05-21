@@ -13,6 +13,7 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   // Place order mutation
   const placeOrderMutation = useMutation({
@@ -24,8 +25,14 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
       );
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      navigate(`/pedido-confirmado/${data.order_id}`);
+      setOrderId(data.order_id);
+      
+      // Para métodos de pagamento diferentes de cartão, redirecionar para confirmação
+      if (data.payment_method !== "credit_card") {
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
+        navigate(`/pedido-confirmado/${data.order_id}`);
+        setIsProcessing(false);
+      }
     },
     onError: (error) => {
       console.error('Error placing order:', error);
@@ -37,6 +44,23 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
       setIsProcessing(false);
     }
   });
+
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    queryClient.invalidateQueries({ queryKey: ['cart'] });
+    if (orderId) {
+      navigate(`/pedido-confirmado/${orderId}`);
+    }
+    setIsProcessing(false);
+  };
+
+  const handlePaymentError = (error: string) => {
+    toast({
+      title: "Erro no pagamento",
+      description: error,
+      variant: "destructive"
+    });
+    setIsProcessing(false);
+  };
 
   const createOrder = (shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType) => {
     if (cartItems.length === 0) {
@@ -63,6 +87,10 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
 
   return {
     isProcessing,
-    createOrder
+    setIsProcessing,
+    createOrder,
+    orderId,
+    handlePaymentSuccess,
+    handlePaymentError
   };
 };

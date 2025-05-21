@@ -36,7 +36,11 @@ router.post('/', async (req, res) => {
       await connection.query('DELETE FROM cart_items WHERE user_id = ?', [user_id]);
       
       await connection.commit();
-      res.json({ success: true, order_id: orderId });
+      res.json({ 
+        success: true, 
+        order_id: orderId,
+        payment_method
+      });
     } catch (error) {
       await connection.rollback();
       throw error;
@@ -96,13 +100,21 @@ router.get('/:id', async (req, res) => {
  * @access  Public
  */
 router.put('/:id/payment', async (req, res) => {
-  const { payment_status } = req.body;
+  const { payment_status, payment_intent_id } = req.body;
   
   try {
-    await req.app.locals.pool.query(
-      'UPDATE orders SET payment_status = ? WHERE id = ?',
-      [payment_status, req.params.id]
-    );
+    if (payment_intent_id) {
+      await req.app.locals.pool.query(
+        'UPDATE orders SET payment_status = ?, payment_intent_id = ? WHERE id = ?',
+        [payment_status, payment_intent_id, req.params.id]
+      );
+    } else {
+      await req.app.locals.pool.query(
+        'UPDATE orders SET payment_status = ? WHERE id = ?',
+        [payment_status, req.params.id]
+      );
+    }
+    
     res.json({ success: true, message: 'Payment status updated' });
   } catch (error) {
     console.error('Error updating payment status:', error);

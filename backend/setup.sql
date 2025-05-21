@@ -40,7 +40,12 @@ CREATE TABLE IF NOT EXISTS orders (
   shipping_address JSON NOT NULL,
   payment_method VARCHAR(50) NOT NULL,
   total DECIMAL(10, 2) NOT NULL,
+  subtotal DECIMAL(10, 2) NOT NULL,
+  shipping DECIMAL(10, 2) NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  payment_status VARCHAR(30) NOT NULL DEFAULT 'awaiting_payment',
+  payment_proof_url VARCHAR(255) NULL,
+  payment_intent_id VARCHAR(255) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
