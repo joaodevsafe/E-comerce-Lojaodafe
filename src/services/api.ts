@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Product, CartItem, WishlistItem, ProductReview, ContactForm, BankDetails, Coupon } from '@/types';
+import { Product, CartItem, WishlistItem, ProductReview, ContactForm, BankDetails } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -556,13 +556,12 @@ export const searchService = {
 };
 
 export default {
-    productService,
-    cartService,
-    orderService,
-    couponService,
-    contactService,
-    bankDetailsService,
-    wishlistService,
-    reviewService,
-    searchService
+  productService,
+  cartService,
+  orderService,
+  contactService,
+  bankDetailsService,
+  wishlistService,
+  reviewService,
+  searchService
 };
