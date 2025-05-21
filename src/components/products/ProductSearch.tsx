@@ -40,7 +40,7 @@ const ProductSearch = ({ onSearch, categories, maxPrice }: ProductSearchProps) =
   
   const [query, setQuery] = useState(searchParams.get('query') || '');
   const [category, setCategory] = useState(searchParams.get('category') || '');
-  const [priceRange, setPriceRange] = useState<[number, number]>([
+  const [priceRange, setPriceRange] = useState<number[]>([
     Number(searchParams.get('minPrice')) || 0,
     Number(searchParams.get('maxPrice')) || maxPrice
   ]);
@@ -166,7 +166,7 @@ const ProductSearch = ({ onSearch, categories, maxPrice }: ProductSearchProps) =
                     min={0}
                     max={maxPrice}
                     step={10}
-                    onValueChange={setPriceRange}
+                    onValueChange={(value: number[]) => setPriceRange(value)}
                     className="my-6"
                   />
                   <div className="flex justify-between text-sm">

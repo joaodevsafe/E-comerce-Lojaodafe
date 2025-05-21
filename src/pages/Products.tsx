@@ -1,10 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { productService, Product } from '@/services/api';
 import ProductCard from '@/components/products/ProductCard';
 import ProductSearch from '@/components/products/ProductSearch';
 import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useCart } from '@/hooks/useCart';
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -13,6 +14,10 @@ const Products = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
   const [maxPrice, setMaxPrice] = useState(1000);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  
+  const { toast } = useToast();
+  const { handleAddItem } = useCart();
 
   useEffect(() => {
     fetchProducts();
@@ -42,6 +47,11 @@ const Products = () => {
       applyFiltersFromURL();
     } catch (error) {
       console.error('Error fetching products:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os produtos",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -118,6 +128,18 @@ const Products = () => {
     setFilteredProducts(results);
   };
 
+  const handleAddToCart = (product: Product) => {
+    handleAddItem(product.id, 1, 'M', 'Preto');
+    toast({
+      description: "Produto adicionado ao carrinho",
+    });
+  };
+
+  const handleToggleFavorite = (productId: string | number) => {
+    // This will be handled by the WishlistButton component
+    console.log("Toggle favorite for product", productId);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 md:px-6">
       <div className="max-w-7xl mx-auto">
@@ -138,7 +160,13 @@ const Products = () => {
             {filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard 
+                    key={product.id} 
+                    product={product}
+                    viewMode={viewMode}
+                    onAddToCart={() => handleAddToCart(product)}
+                    onFavorite={() => handleToggleFavorite(product.id)}
+                  />
                 ))}
               </div>
             ) : (

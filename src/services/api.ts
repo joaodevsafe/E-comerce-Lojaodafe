@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 import { PaymentMethodType } from '@/hooks/checkout/useCheckout';
 import { supabase } from '@/integrations/supabase/client';
@@ -258,17 +257,23 @@ export const couponService = {
       
       if (error) return null;
       
+      // Ensure correct type for discount_type
+      const coupon: Coupon = {
+        ...data,
+        discount_type: data.discount_type as 'percentage' | 'fixed'
+      };
+      
       // Validate minimum purchase amount
-      if (data.min_purchase_amount > subtotal) {
+      if (coupon.min_purchase_amount > subtotal) {
         return null;
       }
       
       // Validate max uses
-      if (data.max_uses !== null && data.current_uses >= data.max_uses) {
+      if (coupon.max_uses !== null && coupon.current_uses >= coupon.max_uses) {
         return null;
       }
       
-      return data;
+      return coupon;
     } catch (error) {
       console.error('Error validating coupon:', error);
       return null;
@@ -315,9 +320,17 @@ export const couponService = {
 export const wishlistService = {
   addToWishlist: async (productId: string): Promise<boolean> => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return false;
+      }
+      
       const { error } = await supabase
         .from('wishlist_items')
-        .insert({ product_id: productId });
+        .insert({ 
+          user_id: user.user.id,
+          product_id: productId 
+        });
       
       return !error;
     } catch (error) {
@@ -328,10 +341,16 @@ export const wishlistService = {
   
   removeFromWishlist: async (productId: string): Promise<boolean> => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return false;
+      }
+      
       const { error } = await supabase
         .from('wishlist_items')
         .delete()
-        .eq('product_id', productId);
+        .eq('product_id', productId)
+        .eq('user_id', user.user.id);
       
       return !error;
     } catch (error) {
@@ -342,9 +361,15 @@ export const wishlistService = {
   
   getWishlist: async (): Promise<WishlistItem[]> => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return [];
+      }
+      
       const { data, error } = await supabase
         .from('wishlist_items')
-        .select('*, product:products(*)');
+        .select('*, product:products(*)')
+        .eq('user_id', user.user.id);
       
       if (error) throw error;
       return data || [];
@@ -356,10 +381,16 @@ export const wishlistService = {
   
   isInWishlist: async (productId: string): Promise<boolean> => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return false;
+      }
+      
       const { data, error } = await supabase
         .from('wishlist_items')
         .select('id')
         .eq('product_id', productId)
+        .eq('user_id', user.user.id)
         .single();
       
       return !error && !!data;
@@ -389,9 +420,15 @@ export const reviewService = {
   
   addReview: async (productId: string, rating: number, reviewText: string | null): Promise<boolean> => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return false;
+      }
+      
       const { error } = await supabase
         .from('product_reviews')
         .insert({
+          user_id: user.user.id,
           product_id: productId,
           rating,
           review_text: reviewText
@@ -437,10 +474,16 @@ export const reviewService = {
   
   getUserReview: async (productId: string): Promise<ProductReview | null> => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return null;
+      }
+      
       const { data, error } = await supabase
         .from('product_reviews')
         .select('*')
         .eq('product_id', productId)
+        .eq('user_id', user.user.id)
         .single();
       
       if (error) return null;
