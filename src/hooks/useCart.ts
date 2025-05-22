@@ -38,7 +38,7 @@ export const useCart = () => {
         throw new Error("Autenticação necessária");
       }
       
-      return await cartService.removeItem(id);
+      return await cartService.removeCartItem(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
@@ -71,7 +71,7 @@ export const useCart = () => {
         throw new Error("Autenticação necessária");
       }
       
-      return await cartService.addItem(productId, quantity, size, color);
+      return await cartService.addItemToCart(productId, quantity, size, color);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
@@ -99,7 +99,7 @@ export const useCart = () => {
         throw new Error("Autenticação necessária");
       }
       
-      return await cartService.updateQuantity(id, quantity);
+      return await cartService.updateCartItemQuantity(id, quantity);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });

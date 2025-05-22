@@ -1,10 +1,13 @@
+
 import cartService from './cartService';
-import productService from './productService';
-import orderService from './orderService';
-import paymentService from './paymentService';
-import contactService from './contactService';
-import wishlistService from './wishlistService';
-import couponService from './couponService';
+
+// Como não temos os serviços reais, vamos criar objetos vazios para representá-los
+const productService = {};
+const orderService = {};
+const paymentService = {};
+const contactService = {};
+const wishlistService = {};
+const couponService = {};
 
 export {
   cartService,
