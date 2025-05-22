@@ -69,7 +69,7 @@ export const useCart = () => {
         const { error } = await supabase
           .from('cart_items')
           .delete()
-          .eq('id', id)
+          .eq('id', String(id))
           .eq('user_id', user.id);
           
         if (error) throw error;
@@ -114,7 +114,7 @@ export const useCart = () => {
         const { data: existingItems, error: checkError } = await supabase
           .from('cart_items')
           .select('*')
-          .eq('product_id', productId)
+          .eq('product_id', String(productId))
           .eq('user_id', user.id)
           .eq('size', size)
           .eq('color', color);
@@ -134,7 +134,7 @@ export const useCart = () => {
           const { error } = await supabase
             .from('cart_items')
             .insert({
-              product_id: productId,
+              product_id: String(productId),
               user_id: user.id,
               quantity,
               size,
@@ -166,7 +166,7 @@ export const useCart = () => {
           const { data: product, error } = await supabase
             .from('products')
             .select('*')
-            .eq('id', productId)
+            .eq('id', String(productId))
             .single();
             
           if (error) throw error;
@@ -174,7 +174,7 @@ export const useCart = () => {
           // Add new item
           cartData.push({
             id: itemId,
-            product_id: productId,
+            product_id: String(productId),
             quantity,
             size,
             color,
@@ -211,7 +211,7 @@ export const useCart = () => {
         const { error } = await supabase
           .from('cart_items')
           .update({ quantity })
-          .eq('id', id)
+          .eq('id', String(id))
           .eq('user_id', user.id);
           
         if (error) throw error;

@@ -6,6 +6,12 @@ export type User = {
   role: "admin" | "user";
 };
 
+export type AdminUser = {
+  id: string;
+  email: string;
+  name: string;
+};
+
 export type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
@@ -16,4 +22,8 @@ export type AuthContextType = {
   register: (email: string, password: string, name: string) => Promise<any>;
   logout: () => Promise<void>;
   openAuthDialog: () => void;
+  // Admin management functions
+  registerAdmin: (email: string, password: string, name: string) => AdminUser;
+  removeAdmin: (id: string) => void;
+  getAdminUsers: () => AdminUser[];
 };
