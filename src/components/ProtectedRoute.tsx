@@ -8,6 +8,13 @@ type ProtectedRouteProps = {
   requiresAdmin?: boolean;
 };
 
+/**
+ * Componente que protege rotas para usuários autenticados ou administradores
+ * @param {Object} props - Propriedades do componente
+ * @param {React.ReactNode} props.children - Componentes filho a serem renderizados se autenticado
+ * @param {boolean} [props.requiresAdmin=false] - Se verdadeiro, exige que o usuário seja administrador
+ * @returns {JSX.Element} Componente filho se autenticado ou redirecionamento
+ */
 const ProtectedRoute = ({ children, requiresAdmin = false }: ProtectedRouteProps) => {
   const { isAuthenticated, isAdmin } = useAuth();
   const { toast } = useToast();

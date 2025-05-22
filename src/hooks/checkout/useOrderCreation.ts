@@ -9,6 +9,11 @@ import type { CartItem } from "@/types";
 import { PaymentMethodType } from "./useCheckout";
 import { useAuth } from "@/contexts/AuthContext";
 
+/**
+ * Hook para gerenciar a criação de pedidos
+ * @param {CartItem[]} cartItems - Itens no carrinho para criar o pedido
+ * @returns {Object} Objeto contendo estado e funções para criação de pedidos
+ */
 export const useOrderCreation = (cartItems: CartItem[]) => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -17,12 +22,12 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
 
-  // Place order mutation
+  // Mutation para criar pedido
   const placeOrderMutation = useMutation({
     mutationFn: (data: { shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType }) => {
       if (!isAuthenticated) {
-        openAuthDialog(); // Show login dialog if not authenticated
-        throw new Error("Authentication required");
+        openAuthDialog(); // Mostrar diálogo de login se não estiver autenticado
+        throw new Error("Autenticação necessária");
       }
       return orderService.createOrder(cartItems, data.shippingAddress, data.paymentMethod);
     },
@@ -37,8 +42,8 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
       }
     },
     onError: (error: any) => {
-      if (error.message !== "Authentication required") {
-        console.error('Error placing order:', error);
+      if (error.message !== "Autenticação necessária") {
+        console.error('Erro ao finalizar pedido:', error);
         toast({
           title: "Erro ao finalizar pedido",
           description: "Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.",
@@ -49,6 +54,10 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
     }
   });
 
+  /**
+   * Manipula o sucesso do pagamento
+   * @param {string} paymentIntentId - ID da intenção de pagamento confirmada
+   */
   const handlePaymentSuccess = (paymentIntentId: string) => {
     queryClient.invalidateQueries({ queryKey: ['cart'] });
     if (orderId) {
@@ -57,6 +66,10 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
     setIsProcessing(false);
   };
 
+  /**
+   * Manipula erros no pagamento
+   * @param {string} error - Mensagem de erro
+   */
   const handlePaymentError = (error: string) => {
     toast({
       title: "Erro no pagamento",
@@ -66,6 +79,11 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
     setIsProcessing(false);
   };
 
+  /**
+   * Cria um novo pedido
+   * @param {AddressFormValues} shippingAddress - Dados do endereço de entrega
+   * @param {PaymentMethodType} paymentMethod - Método de pagamento selecionado
+   */
   const createOrder = (shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType) => {
     if (!isAuthenticated) {
       openAuthDialog();
@@ -81,10 +99,10 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
       return;
     }
     
-    // Calculate discounts based on payment method
+    // Calcular descontos com base no método de pagamento
     let discountPercent = 0;
     if (paymentMethod === "pix") {
-      discountPercent = 5; // 5% discount for Pix
+      discountPercent = 5; // 5% de desconto para Pix
     }
     
     setIsProcessing(true);

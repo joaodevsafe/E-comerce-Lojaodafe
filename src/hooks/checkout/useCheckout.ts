@@ -11,10 +11,14 @@ import { CartItem } from "@/types";
 
 export type PaymentMethodType = "credit_card" | "pix" | "boleto" | "bank_transfer";
 
+/**
+ * Hook para gerenciar o fluxo de checkout
+ * @returns {Object} Objeto contendo estado e funções para o processo de checkout
+ */
 export const useCheckout = () => {
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethodType>("credit_card");
 
-  // Initialize form with validation
+  // Inicializar formulário com validação
   const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
@@ -31,16 +35,16 @@ export const useCheckout = () => {
     }
   });
 
-  // Fetch cart items
+  // Buscar itens do carrinho
   const { data: cartItems = [], isLoading: isLoadingCart } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems
   });
 
-  // Calculate price totals
+  // Calcular totais de preço
   const { subtotal, shipping, total, formatPrice } = useCartCalculations(cartItems as CartItem[]);
 
-  // Order creation functionality
+  // Funcionalidade de criação de pedido
   const { 
     isProcessing, 
     setIsProcessing,
@@ -50,7 +54,10 @@ export const useCheckout = () => {
     handlePaymentError
   } = useOrderCreation(cartItems as CartItem[]);
 
-  // Handle form submission
+  /**
+   * Manipula a submissão do formulário
+   * @param {AddressFormValues} values - Valores do formulário de endereço
+   */
   const onSubmit = (values: AddressFormValues) => {
     createOrder(values, selectedPayment);
   };

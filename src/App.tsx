@@ -5,10 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ContactProvider } from "@/contexts/ContactContext";
-import { BankDetailsProvider } from "@/contexts/BankDetailsContext";
-import { NavigationProvider } from "@/contexts/NavigationContext";
+import { AuthProvider } from "@/providers";
+import { ContactProvider, BankDetailsProvider, NavigationProvider } from "@/contexts/ContactContext";
 import Index from "./pages/Index";
 import Products from "./pages/Products";
 import ProductDetail from "./pages/ProductDetail";
@@ -23,11 +21,15 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Get Google Client ID from environment variables
+// Obter Google Client ID das variáveis de ambiente
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
+/**
+ * Componente principal da aplicação
+ * @returns {JSX.Element} Elemento React que contém toda a aplicação
+ */
 const App = () => {
-  // Create a new QueryClient instance inside the component
+  // Criar uma nova instância de QueryClient dentro do componente
   const queryClient = new QueryClient();
 
   return (

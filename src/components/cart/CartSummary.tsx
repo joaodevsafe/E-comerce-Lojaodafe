@@ -15,6 +15,18 @@ interface CartSummaryProps {
   onCheckout: () => void;
 }
 
+/**
+ * Componente que exibe o resumo do carrinho com valores e botão de finalizar compra
+ * @param {Object} props - Propriedades do componente
+ * @param {number} props.itemCount - Número de itens no carrinho
+ * @param {number} props.subtotal - Valor total dos produtos sem frete
+ * @param {number} props.shipping - Valor do frete
+ * @param {number} [props.discount=0] - Valor do desconto aplicado
+ * @param {number} props.total - Valor total da compra (produtos + frete - desconto)
+ * @param {Function} props.formatPrice - Função para formatar preços
+ * @param {Function} props.onCheckout - Função para chamar ao clicar em finalizar compra
+ * @returns {JSX.Element} Componente de resumo do carrinho
+ */
 const CartSummary = ({ 
   itemCount, 
   subtotal, 

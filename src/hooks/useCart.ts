@@ -8,44 +8,37 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+/**
+ * Hook para gerenciar operações do carrinho de compras
+ * @returns {Object} Objeto contendo dados e funções para o carrinho
+ */
 export const useCart = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { isAuthenticated, user, openAuthDialog } = useAuth();
   
-  // Fetch cart items
+  // Buscar itens do carrinho
   const { 
     data: cartItems = [], 
     isLoading 
   } = useQuery({
     queryKey: ['cart'],
     queryFn: cartService.getItems,
-    enabled: isAuthenticated // Only fetch if user is authenticated
+    enabled: isAuthenticated // Só buscar se o usuário estiver autenticado
   });
 
-  // Calculate price totals using the useCartCalculations hook
+  // Calcular totais de preços usando o hook useCartCalculations
   const { subtotal, shipping, total, formatPrice } = useCartCalculations(cartItems as CartItem[]);
 
-  // Mutation for removing an item from cart
+  // Mutation para remover um item do carrinho
   const removeItemMutation = useMutation({
     mutationFn: async (id: string | number) => {
       if (!isAuthenticated) {
-        openAuthDialog(); // Show login dialog if not authenticated
-        throw new Error("Authentication required");
+        openAuthDialog(); // Mostrar diálogo de login se não estiver autenticado
+        throw new Error("Autenticação necessária");
       }
       
-      if (isAuthenticated && user) {
-        const { error } = await supabase
-          .from('cart_items')
-          .delete()
-          .eq('id', String(id))
-          .eq('user_id', user.id);
-          
-        if (error) throw error;
-        return { success: true };
-      } else {
-        throw new Error("Authentication required");
-      }
+      return await cartService.removeItem(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
@@ -54,18 +47,18 @@ export const useCart = () => {
       });
     },
     onError: (error) => {
-      if (error.message !== "Authentication required") {
+      if (error.message !== "Autenticação necessária") {
         toast({
           title: "Erro",
           description: "Não foi possível remover o item",
           variant: "destructive"
         });
       }
-      console.error('Error removing item:', error);
+      console.error('Erro ao remover item:', error);
     }
   });
 
-  // Mutation for adding an item to cart
+  // Mutation para adicionar um item ao carrinho
   const addItemMutation = useMutation({
     mutationFn: async ({ productId, quantity, size, color }: { 
       productId: string | number, 
@@ -74,8 +67,8 @@ export const useCart = () => {
       color: string
     }) => {
       if (!isAuthenticated) {
-        openAuthDialog(); // Show login dialog if not authenticated
-        throw new Error("Authentication required");
+        openAuthDialog(); // Mostrar diálogo de login se não estiver autenticado
+        throw new Error("Autenticação necessária");
       }
       
       return await cartService.addItem(productId, quantity, size, color);
@@ -87,65 +80,67 @@ export const useCart = () => {
       });
     },
     onError: (error) => {
-      if (error.message !== "Authentication required") {
+      if (error.message !== "Autenticação necessária") {
         toast({
           title: "Erro",
           description: "Não foi possível adicionar o produto",
           variant: "destructive"
         });
       }
-      console.error('Error adding item:', error);
+      console.error('Erro ao adicionar item:', error);
     }
   });
 
-  // Mutation for updating item quantity
+  // Mutation para atualizar quantidade do item
   const updateQuantityMutation = useMutation({
     mutationFn: async ({ id, quantity }: { id: string | number, quantity: number }) => {
       if (!isAuthenticated) {
-        openAuthDialog(); // Show login dialog if not authenticated
-        throw new Error("Authentication required");
+        openAuthDialog(); // Mostrar diálogo de login se não estiver autenticado
+        throw new Error("Autenticação necessária");
       }
       
-      if (isAuthenticated && user) {
-        const { error } = await supabase
-          .from('cart_items')
-          .update({ quantity })
-          .eq('id', String(id))
-          .eq('user_id', user.id);
-          
-        if (error) throw error;
-        return { success: true };
-      } else {
-        throw new Error("Authentication required");
-      }
+      return await cartService.updateQuantity(id, quantity);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
     },
     onError: (error) => {
-      if (error.message !== "Authentication required") {
+      if (error.message !== "Autenticação necessária") {
         toast({
           title: "Erro",
           description: "Não foi possível atualizar a quantidade",
           variant: "destructive"
         });
       }
-      console.error('Error updating quantity:', error);
+      console.error('Erro ao atualizar quantidade:', error);
     }
   });
 
-  // Handle quantity change
+  /**
+   * Manipula a mudança na quantidade de um item
+   * @param {string|number} id - ID do item do carrinho
+   * @param {number} quantity - Nova quantidade
+   */
   const handleQuantityChange = (id: string | number, quantity: number) => {
-    if (quantity < 1) return; // Prevent negative quantities
+    if (quantity < 1) return; // Evitar quantidades negativas
     updateQuantityMutation.mutate({ id, quantity });
   };
 
-  // Handle remove item
+  /**
+   * Manipula a remoção de um item do carrinho
+   * @param {string|number} id - ID do item a ser removido
+   */
   const handleRemoveItem = (id: string | number) => {
     removeItemMutation.mutate(id);
   };
 
-  // Handle add item
+  /**
+   * Manipula a adição de um item ao carrinho
+   * @param {string|number} productId - ID do produto
+   * @param {number} [quantity=1] - Quantidade do produto
+   * @param {string} [size="M"] - Tamanho do produto
+   * @param {string} [color="Preto"] - Cor do produto
+   */
   const handleAddItem = (productId: string | number, quantity: number = 1, size: string = "M", color: string = "Preto") => {
     addItemMutation.mutate({ productId, quantity, size, color });
   };
