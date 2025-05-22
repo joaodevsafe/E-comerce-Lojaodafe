@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { wishlistService } from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 interface WishlistButtonProps {

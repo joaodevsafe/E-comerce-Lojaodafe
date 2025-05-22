@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CartItem } from "@/types";
@@ -6,7 +5,7 @@ import { cartService } from "@/services/api";
 import { useCartCalculations } from "@/hooks/cart/useCartCalculations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useCart = () => {
   const queryClient = useQueryClient();

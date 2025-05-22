@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Send, Edit, Trash } from "lucide-react";
 import ProductRating from "./ProductRating";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { reviewService } from "@/services/api";
 import { ProductReview } from "@/types";

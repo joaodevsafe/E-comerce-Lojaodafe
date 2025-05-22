@@ -5,7 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import { wishlistService } from '@/services/api';
 import { WishlistItem, Product } from '@/types';
 import { Button } from "@/components/ui/button";
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from "@/hooks/use-toast";
 import EnhancedProductCard from "@/components/products/EnhancedProductCard";
 
