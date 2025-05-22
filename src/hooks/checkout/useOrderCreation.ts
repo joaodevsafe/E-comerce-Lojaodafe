@@ -7,17 +7,23 @@ import { orderService } from "@/services/api";
 import type { AddressFormValues } from "./useAddressValidation";
 import type { CartItem } from "@/types";
 import { PaymentMethodType } from "./useCheckout";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const useOrderCreation = (cartItems: CartItem[]) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isAuthenticated, openAuthDialog } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
 
   // Place order mutation
   const placeOrderMutation = useMutation({
     mutationFn: (data: { shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType }) => {
+      if (!isAuthenticated) {
+        openAuthDialog(); // Show login dialog if not authenticated
+        throw new Error("Authentication required");
+      }
       return orderService.createOrder(cartItems, data.shippingAddress, data.paymentMethod);
     },
     onSuccess: (data) => {
@@ -30,13 +36,15 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
         setIsProcessing(false);
       }
     },
-    onError: (error) => {
-      console.error('Error placing order:', error);
-      toast({
-        title: "Erro ao finalizar pedido",
-        description: "Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.",
-        variant: "destructive"
-      });
+    onError: (error: any) => {
+      if (error.message !== "Authentication required") {
+        console.error('Error placing order:', error);
+        toast({
+          title: "Erro ao finalizar pedido",
+          description: "Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.",
+          variant: "destructive"
+        });
+      }
       setIsProcessing(false);
     }
   });
@@ -59,6 +67,11 @@ export const useOrderCreation = (cartItems: CartItem[]) => {
   };
 
   const createOrder = (shippingAddress: AddressFormValues, paymentMethod: PaymentMethodType) => {
+    if (!isAuthenticated) {
+      openAuthDialog();
+      return;
+    }
+    
     if (cartItems.length === 0) {
       toast({
         title: "Carrinho vazio",

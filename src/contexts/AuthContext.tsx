@@ -1,17 +1,47 @@
 
-import { createContext, useContext } from "react";
-import { AuthContextType } from "@/types/auth";
-import { AuthProvider } from "@/providers/AuthProvider";
+import React, { createContext, useContext } from 'react';
 
-export const AuthContext = createContext<AuthContextType | null>(null);
+// Tipos para autenticação
+export interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role?: 'admin' | 'user';
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string;
+}
 
-// Re-export AuthProvider for convenience
-export { AuthProvider };
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<any>;
+  loginWithGoogle: (tokenResponse: any) => Promise<any>;
+  register: (email: string, password: string, name: string) => Promise<any>;
+  logout: () => Promise<void>;
+  openAuthDialog: () => void;
+  registerAdmin?: (email: string, password: string, name: string) => AdminUser;
+  removeAdmin?: (id: string) => void;
+  getAdminUsers?: () => AdminUser[];
+}
+
+// Criar contexto
+export const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isAuthenticated: false,
+  isAdmin: false,
+  loading: true,
+  login: async () => {},
+  loginWithGoogle: async () => {},
+  register: async () => {},
+  logout: async () => {},
+  openAuthDialog: () => {},
+});
+
+// Hook para usar o contexto de autenticação
+export const useAuth = () => useContext(AuthContext);

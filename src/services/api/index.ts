@@ -1,4 +1,3 @@
-
 import { Product, CartItem } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -104,17 +103,12 @@ export const productService = {
 export const cartService = {
   getItems: async () => {
     try {
+      // Verificar se o usuário está autenticado
       const { data: { session } } = await supabase.auth.getSession();
-      let user_id = session?.user?.id;
       
-      // If user is not authenticated, use a guest ID from localStorage
-      if (!user_id) {
-        let guestUserId = localStorage.getItem('guestUserId');
-        if (!guestUserId) {
-          guestUserId = 'guest_' + Math.random().toString(36).substring(2, 15);
-          localStorage.setItem('guestUserId', guestUserId);
-        }
-        user_id = guestUserId;
+      if (!session?.user) {
+        console.warn('User not authenticated, returning empty cart');
+        return [] as CartItem[];
       }
       
       const { data, error } = await supabase
@@ -123,7 +117,7 @@ export const cartService = {
           *,
           products(*)
         `)
-        .eq('user_id', user_id);
+        .eq('user_id', session.user.id);
       
       if (error) throw error;
       
@@ -147,24 +141,19 @@ export const cartService = {
 
   addItem: async (productId: string | number, quantity: number, size: string, color: string) => {
     try {
+      // Verificar se o usuário está autenticado
       const { data: { session } } = await supabase.auth.getSession();
-      let user_id = session?.user?.id;
       
-      // If user is not authenticated, use a guest ID from localStorage
-      if (!user_id) {
-        let guestUserId = localStorage.getItem('guestUserId');
-        if (!guestUserId) {
-          guestUserId = 'guest_' + Math.random().toString(36).substring(2, 15);
-          localStorage.setItem('guestUserId', guestUserId);
-        }
-        user_id = guestUserId;
+      if (!session?.user) {
+        console.error('User not authenticated, cannot add to cart');
+        throw new Error('Authentication required to add items to cart');
       }
       
       // Check if item exists already
       const { data: existingItems } = await supabase
         .from('cart_items')
         .select('*')
-        .eq('user_id', user_id)
+        .eq('user_id', session.user.id)
         .eq('product_id', String(productId))
         .eq('size', size)
         .eq('color', color);
@@ -184,7 +173,7 @@ export const cartService = {
         const { data, error } = await supabase
           .from('cart_items')
           .insert({
-            user_id,
+            user_id: session.user.id,
             product_id: String(productId),
             quantity,
             size,
@@ -234,20 +223,18 @@ export const cartService = {
 
   clearCart: async () => {
     try {
+      // Verificar se o usuário está autenticado
       const { data: { session } } = await supabase.auth.getSession();
-      let user_id = session?.user?.id;
       
-      // If user is not authenticated, use a guest ID from localStorage
-      if (!user_id) {
-        const guestUserId = localStorage.getItem('guestUserId');
-        if (!guestUserId) return { success: true }; // No cart to clear
-        user_id = guestUserId;
+      if (!session?.user) {
+        console.error('User not authenticated, cannot clear cart');
+        throw new Error('Authentication required to clear cart');
       }
       
       const { error } = await supabase
         .from('cart_items')
         .delete()
-        .eq('user_id', user_id);
+        .eq('user_id', session.user.id);
         
       if (error) throw error;
       return { success: true };
