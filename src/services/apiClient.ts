@@ -13,10 +13,14 @@ const apiClient = axios.create({
 
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(async (config) => {
-  const { data } = await supabase.auth.getSession();
-  
-  if (data.session?.access_token) {
-    config.headers.Authorization = `Bearer ${data.session.access_token}`;
+  try {
+    const { data } = await supabase.auth.getSession();
+    
+    if (data.session?.access_token) {
+      config.headers.Authorization = `Bearer ${data.session.access_token}`;
+    }
+  } catch (error) {
+    console.error('Error retrieving auth token:', error);
   }
   
   return config;
@@ -31,7 +35,10 @@ apiClient.interceptors.response.use(
     // Handle specific errors
     if (error.response) {
       // Server responded with a status code outside of 2xx
-      console.error('API Error:', error.response.data);
+      console.error('API Error:', error.response.status, error.response.statusText);
+      
+      // Avoid logging potentially sensitive data
+      // Only log minimal information about the error
       
       // Handle 401 Unauthorized errors
       if (error.response.status === 401) {
@@ -40,7 +47,7 @@ apiClient.interceptors.response.use(
       }
     } else if (error.request) {
       // Request was made but no response received
-      console.error('No response received from server:', error.request);
+      console.error('No response received from server');
     } else {
       // Error setting up the request
       console.error('Error setting up request:', error.message);
