@@ -4,11 +4,35 @@
   RewriteEngine On
   RewriteBase /
   
+  # Force HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  
   # Se o arquivo não existe, redireciona para index.html
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteRule . /index.html [L]
+</IfModule>
+
+# Content Security Policy
+<IfModule mod_headers.c>
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.gpteng.co https://accounts.google.com https://js.stripe.com; connect-src 'self' https://*.supabase.co https://pgrsngtophlchvdpbvge.supabase.co https://api.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; frame-src 'self' https://js.stripe.com https://accounts.google.com; object-src 'none';"
+  
+  # Prevent clickjacking
+  Header set X-Frame-Options "SAMEORIGIN"
+  
+  # XSS Protection
+  Header set X-XSS-Protection "1; mode=block"
+  
+  # Prevent MIME type sniffing
+  Header set X-Content-Type-Options "nosniff"
+  
+  # Referrer Policy
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  
+  # Feature Policy
+  Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
 
 # Definir cabeçalhos para cache

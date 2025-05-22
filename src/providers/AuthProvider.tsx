@@ -1,160 +1,212 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
 import { User } from "@/types/auth";
 import { useToast } from "@/hooks/use-toast";
-import { getAdminUsers, registerAdmin, removeAdmin } from "@/utils/authUtils";
-import axios from "axios";
+import { supabase } from "@/integrations/supabase/client";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   
+  // Check if user is authenticated
   const isAuthenticated = !!user;
+  // Check if user is admin
   const isAdmin = !!user && user.role === "admin";
   
+  // Initialize auth state on component mount
   useEffect(() => {
-    // Check for stored user on initial load
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error("Failed to parse stored user:", error);
-        localStorage.removeItem("user");
+    // Set up listener for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session && session.user) {
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+            role: session.user.user_metadata?.role || 'user'
+          };
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          setUser(null);
+          localStorage.removeItem("user");
+        }
+        setLoading(false);
       }
-    }
-  }, []);
-  
-  const login = async (email: string, password: string) => {
-    try {
-      // Check if it's an administrator
-      const admins = getAdminUsers();
-      const adminUser = admins.find(admin => admin.email === email);
+    );
+    
+    // Check for existing session
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (adminUser) {
-        // Check admin password
-        const adminPasswords = JSON.parse(localStorage.getItem("adminPasswords") || "{}");
-        
-        if (adminPasswords[email] === password) {
-          setUser(adminUser);
-          localStorage.setItem("user", JSON.stringify(adminUser));
-          toast({
-            title: "Login successful",
-            description: "Welcome to the admin panel",
-          });
-          return;
+      if (session && session.user) {
+        const userData: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+          role: session.user.user_metadata?.role || 'user'
+        };
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+      } else {
+        // Try to get user from localStorage as fallback
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            // Verify with Supabase if this user is still valid
+            const { data } = await supabase.auth.getUser();
+            if (data?.user) {
+              setUser(parsedUser);
+            } else {
+              // Invalid stored user, remove it
+              localStorage.removeItem("user");
+              setUser(null);
+            }
+          } catch (error) {
+            console.error("Failed to parse stored user:", error);
+            localStorage.removeItem("user");
+            setUser(null);
+          }
+        } else {
+          setUser(null);
         }
       }
+      setLoading(false);
+    };
+    
+    initializeAuth();
+    
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+  
+  // Login with email and password
+  const login = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // If not an admin or password is incorrect, continue with normal login
-      if (email === "admin@lojaodafe.com" && password === "admin123") {
-        const adminUser = { id: "1", email, name: "Admin", role: "admin" as const };
-        setUser(adminUser);
-        localStorage.setItem("user", JSON.stringify(adminUser));
-        toast({
-          title: "Login successful",
-          description: "Welcome to the admin panel",
-        });
-      } else if (email && password) {
-        // Simulate regular user login
-        const regularUser = { id: "2", email, name: email.split("@")[0], role: "user" as const };
-        setUser(regularUser);
-        localStorage.setItem("user", JSON.stringify(regularUser));
-        toast({
-          title: "Login successful",
-          description: "Welcome to LOJAODAFE",
-        });
-      } else {
-        throw new Error("Email and password are required");
-      }
-    } catch (error) {
+      if (error) throw error;
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      
+      return data;
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Login error",
-        description: "Incorrect email or password",
+        description: error.message || "Incorrect email or password",
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
+  // Login with Google
   const loginWithGoogle = async (tokenResponse: any) => {
     try {
-      // Get user information from Google using the access token
-      const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          Authorization: `Bearer ${tokenResponse.access_token}`
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
         }
       });
       
-      const googleUserInfo = userInfoResponse.data;
-      
-      // Create user from Google profile information
-      const googleUser = { 
-        id: googleUserInfo.sub || Math.random().toString(36).substr(2, 9), 
-        email: googleUserInfo.email || "user@gmail.com", 
-        name: googleUserInfo.name || "Google User", 
-        role: "user" as const 
-      };
-      
-      setUser(googleUser);
-      localStorage.setItem("user", JSON.stringify(googleUser));
+      if (error) throw error;
       
       toast({
         title: "Google login successful",
         description: "Welcome to LOJAODAFE",
       });
       
-      return googleUser;
-    } catch (error) {
+      return data;
+    } catch (error: any) {
       console.error("Google login error:", error);
       toast({
         title: "Google login error",
-        description: "Could not login with Google",
+        description: error.message || "Could not login with Google",
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
+  // Register new user
   const register = async (email: string, password: string, name: string) => {
     try {
-      // Mock registration - replace with actual implementation
-      if (email && password && name) {
-        const newUser = { 
-          id: Math.random().toString(36).substr(2, 9), 
-          email, 
-          name, 
-          role: "user" as const 
-        };
-        setUser(newUser);
-        localStorage.setItem("user", JSON.stringify(newUser));
-        toast({
-          title: "Registration successful",
-          description: "Welcome to LOJAODAFE",
-        });
-      } else {
-        throw new Error("All fields are required");
-      }
-    } catch (error) {
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name }
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Registration successful",
+        description: "Welcome to LOJAODAFE!",
+      });
+      
+      return data;
+    } catch (error: any) {
       console.error("Registration error:", error);
       toast({
         title: "Registration error",
-        description: "Could not complete the registration",
+        description: error.message || "Could not complete the registration",
         variant: "destructive",
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
   
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    toast({
-      title: "Logout complete",
-      description: "You have been logged out of your account",
-    });
+  // Logout current user
+  const logout = async () => {
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
+      setUser(null);
+      localStorage.removeItem("user");
+      
+      toast({
+        title: "Logout complete",
+        description: "You have been logged out of your account",
+      });
+    } catch (error: any) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout error",
+        description: error.message || "Could not complete the logout",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   
   // Add openAuthDialog method to handle login dialog visibility
@@ -165,18 +217,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.dispatchEvent(event);
   }, []);
   
+  // Admin operations are removed from here for security
+  // They should be implemented via Supabase RLS policies and edge functions
+  
   return (
     <AuthContext.Provider
       value={{ 
         user, 
         isAuthenticated, 
-        isAdmin, 
+        isAdmin,
+        loading,
         login, 
         loginWithGoogle, 
         register,
-        registerAdmin,
-        removeAdmin,
-        getAdminUsers,
         logout,
         openAuthDialog
       }}

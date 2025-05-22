@@ -1,9 +1,20 @@
 
 #!/bin/bash
 
-# Build for production
-echo "Building for production..."
-npm run build
+# Exit on error
+set -e
+
+# Check if environment is set
+ENV=${1:-production}
+echo "Building for environment: $ENV"
+
+# Build for the specified environment
+echo "Building for $ENV..."
+if [ "$ENV" = "production" ]; then
+  npm run build
+else
+  npm run build:dev
+fi
 
 # Create a zip file for easy upload
 echo "Creating zip file for deployment..."

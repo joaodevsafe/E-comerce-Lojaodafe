@@ -19,8 +19,7 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
-    // Add mainFields to help resolve directory imports properly
-    mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
+    mainFields: ['browser', 'module', 'jsnext:main', 'jsnext', 'main'],
   },
   // Base path configuration for production
   base: "/",
@@ -34,8 +33,17 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@/components/ui/button', '@/components/ui/input', '@/components/ui/card'], // Specify exact component files instead of the directory
+          ui: ['@/components/ui/button', '@/components/ui/input', '@/components/ui/card'],
         },
+      },
+    },
+  },
+  // Add optimizeDeps configuration to handle Node.js built-in modules
+  optimizeDeps: {
+    esbuildOptions: {
+      // Define globals for browser compatibility
+      define: {
+        global: 'globalThis',
       },
     },
   },
