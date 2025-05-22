@@ -19,6 +19,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    // Add mainFields to help resolve directory imports properly
+    mainFields: ['module', 'jsnext:main', 'jsnext', 'main'],
   },
   // Base path configuration for production
   base: "/",
@@ -32,7 +34,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['@/components/ui'],
+          ui: ['@/components/ui/button', '@/components/ui/input', '@/components/ui/card'], // Specify exact component files instead of the directory
         },
       },
     },
