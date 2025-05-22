@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
-import { User } from "@/types/auth";
+import { User, AdminUser } from "@/types/auth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -217,8 +216,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.dispatchEvent(event);
   }, []);
   
-  // Admin operations are removed from here for security
-  // They should be implemented via Supabase RLS policies and edge functions
+  // Implementation of admin management functions
+  
+  // Register a new admin user
+  const registerAdmin = (email: string, password: string, name: string): AdminUser => {
+    // In a real application, this would make an API call with admin privileges
+    // For now, we'll simulate it with a local implementation
+    if (!isAdmin) {
+      throw new Error("Only admins can register other admins");
+    }
+    
+    // Generate a random ID for the admin
+    const id = `admin_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    
+    // Create the admin user object
+    const adminUser: AdminUser = {
+      id,
+      email,
+      name
+    };
+    
+    // In a real implementation, we would save this to the database
+    // For now, let's store in localStorage for demo purposes
+    const existingAdmins = getAdminUsers();
+    const updatedAdmins = [...existingAdmins, adminUser];
+    localStorage.setItem('adminUsers', JSON.stringify(updatedAdmins));
+    
+    return adminUser;
+  };
+  
+  // Remove an admin user
+  const removeAdmin = (id: string): void => {
+    if (!isAdmin) {
+      throw new Error("Only admins can remove other admins");
+    }
+    
+    // Get current admin users
+    const existingAdmins = getAdminUsers();
+    
+    // Remove the admin with the matching ID
+    const updatedAdmins = existingAdmins.filter(admin => admin.id !== id);
+    
+    // Save back to localStorage
+    localStorage.setItem('adminUsers', JSON.stringify(updatedAdmins));
+  };
+  
+  // Get all admin users
+  const getAdminUsers = (): AdminUser[] => {
+    if (!isAdmin) {
+      return [];
+    }
+    
+    // In a real implementation, this would fetch from the database
+    // For now, retrieve from localStorage
+    const adminsJson = localStorage.getItem('adminUsers');
+    return adminsJson ? JSON.parse(adminsJson) : [];
+  };
   
   return (
     <AuthContext.Provider
@@ -231,7 +284,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginWithGoogle, 
         register,
         logout,
-        openAuthDialog
+        openAuthDialog,
+        registerAdmin,
+        removeAdmin,
+        getAdminUsers
       }}
     >
       {children}
